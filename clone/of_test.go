@@ -26,6 +26,7 @@ type (
 	float64Type    float64
 	complex64Type  complex64
 	complex128Type complex128
+	stringType     string
 )
 
 func TestOf_trivial_copy(t *testing.T) {
@@ -143,6 +144,22 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 		}
 		if !reflect.DeepEqual(slice, c) {
 			t.Errorf("the slices have different elements")
+		}
+	})
+}
+
+func TestOf_string(t *testing.T) {
+	testString(t, "")
+	testString(t, stringType(""))
+	testString(t, "foo")
+	testString(t, stringType("foo"))
+}
+
+func testString[T ~string](t *testing.T, s T) {
+	t.Helper()
+	t.Run(fmt.Sprintf("%T(%v)", s, s), func(t *testing.T) {
+		if c := clone.Of(s); c != s {
+			t.Errorf("expected %v, got %v", s, c)
 		}
 	})
 }

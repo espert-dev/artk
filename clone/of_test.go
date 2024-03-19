@@ -84,3 +84,41 @@ func testValues[T comparable](t *testing.T, values []T) {
 		}
 	})
 }
+
+func TestOf_slices(t *testing.T) {
+	testSlice(t, []bool(nil))
+	testSlice(t, []bool{})
+	testSlice(t, []bool{false})
+	testSlice(t, []bool{true})
+	testSlice(t, []bool{false, true})
+	testSlice(t, []boolType(nil))
+	testSlice(t, []boolType{})
+	testSlice(t, []boolType{false})
+	testSlice(t, []boolType{true})
+	testSlice(t, []boolType{false, true})
+}
+
+func testSlice[T comparable](t *testing.T, slice []T) {
+	t.Helper()
+
+	var name string
+	if slice == nil {
+		name = fmt.Sprintf("%T(nil)", slice)
+	} else {
+		name = fmt.Sprintf("%T%v", slice, slice)
+	}
+
+	t.Run(name, func(t *testing.T) {
+		c := clone.Of(slice)
+
+		if slice == nil && c != nil || slice != nil && c == nil {
+			t.Errorf("nil not preserved")
+		}
+		if len(c) != len(slice) {
+			t.Errorf("the slices have different lengths")
+		}
+		if !reflect.DeepEqual(slice, c) {
+			t.Errorf("the slices have different elements")
+		}
+	})
+}

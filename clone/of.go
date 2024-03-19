@@ -42,10 +42,29 @@ func cloneAny(v reflect.Value) reflect.Value {
 	case reflect.Map:
 	case reflect.Pointer:
 	case reflect.Slice:
+		return cloneSlice(v)
 	case reflect.String:
 	case reflect.Struct:
 	case reflect.UnsafePointer:
 	}
 
 	panic("unsupported kind")
+}
+
+func cloneSlice(v reflect.Value) reflect.Value {
+	if v.IsNil() {
+		return v
+	}
+
+	// Set capacity to length.
+	l := v.Len()
+	c := reflect.MakeSlice(v.Type(), l, l)
+
+	// We avoid reflect.Copy, which would result in a shadow copy.
+	for i := 0; i < l; i++ {
+		e := v.Index(i)
+		c.Index(i).Set(e)
+	}
+
+	return c
 }

@@ -36,6 +36,7 @@ func cloneAny(v reflect.Value) reflect.Value {
 		// Returning the value is enough for these value types.
 		return v
 	case reflect.Array:
+		return cloneArray(v)
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
@@ -51,12 +52,27 @@ func cloneAny(v reflect.Value) reflect.Value {
 	panic("unsupported kind")
 }
 
+func cloneArray(v reflect.Value) reflect.Value {
+	// In arrays, the length is a property of the type, not the value.
+	l := v.Type().Len()
+	c := reflect.New(reflect.ArrayOf(l, v.Type().Elem()))
+
+	// We avoid reflect.Copy, which would result in a shadow copy.
+	for i := 0; i < l; i++ {
+		e := v.Index(i)
+		c.Elem().Index(i).Set(e)
+	}
+
+	return c.Elem()
+}
+
 func cloneSlice(v reflect.Value) reflect.Value {
 	if v.IsNil() {
 		return v
 	}
 
 	// Set capacity to length.
+	// Note that in slices, this is a property of the value, not the type.
 	l := v.Len()
 	c := reflect.MakeSlice(v.Type(), l, l)
 

@@ -85,6 +85,31 @@ func testValues[T comparable](t *testing.T, values []T) {
 	})
 }
 
+func TestOf_arrays(t *testing.T) {
+	testArray(t, [2]bool{})
+	testArray(t, [2]bool{})
+	testArray(t, [2]bool{false})
+	testArray(t, [2]bool{true})
+	testArray(t, [2]bool{false, true})
+	testArray(t, [2]boolType{})
+	testArray(t, [2]boolType{})
+	testArray(t, [2]boolType{false})
+	testArray(t, [2]boolType{true})
+	testArray(t, [2]boolType{false, true})
+}
+
+// We have no way of parametrizing the array length with generics,
+// so we picked an arbitrary but useful value.
+func testArray[T comparable](t *testing.T, array [2]T) {
+	t.Helper()
+	t.Run(fmt.Sprintf("%T%v", array, array), func(t *testing.T) {
+		c := clone.Of(array)
+		if !reflect.DeepEqual(array, c) {
+			t.Errorf("the arrays are different")
+		}
+	})
+}
+
 func TestOf_slices(t *testing.T) {
 	testSlice(t, []bool(nil))
 	testSlice(t, []bool{})
@@ -99,8 +124,6 @@ func TestOf_slices(t *testing.T) {
 }
 
 func testSlice[T comparable](t *testing.T, slice []T) {
-	t.Helper()
-
 	var name string
 	if slice == nil {
 		name = fmt.Sprintf("%T(nil)", slice)
@@ -108,6 +131,7 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 		name = fmt.Sprintf("%T%v", slice, slice)
 	}
 
+	t.Helper()
 	t.Run(name, func(t *testing.T) {
 		c := clone.Of(slice)
 

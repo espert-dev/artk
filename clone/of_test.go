@@ -145,6 +145,15 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 		if !reflect.DeepEqual(slice, c) {
 			t.Errorf("the slices have different elements")
 		}
+
+		// Sharing is never an issue if the slices are empty.
+		if len(slice) != 0 {
+			ps := reflect.ValueOf(slice).Pointer()
+			pc := reflect.ValueOf(c).Pointer()
+			if ps == pc {
+				t.Errorf("the slices share memory")
+			}
+		}
 	})
 }
 

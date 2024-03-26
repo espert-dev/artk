@@ -128,6 +128,29 @@ func TestOf_interfaces(t *testing.T) {
 	})
 }
 
+func TestOf_pointers(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		var v *int
+
+		c := clone.Of(v)
+		if c != nil {
+			t.Errorf("unexpected not nil")
+		}
+	})
+	t.Run("not nil", func(t *testing.T) {
+		v := new(int)
+		*v = 1
+
+		c := clone.Of(v)
+		if c == v {
+			t.Errorf("unexpected shallow copy")
+		}
+		if *c != *v {
+			t.Errorf("expected %v, got %v", *v, *c)
+		}
+	})
+}
+
 func TestOf_slices(t *testing.T) {
 	testSlice(t, []bool(nil))
 	testSlice(t, []bool{})

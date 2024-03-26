@@ -50,6 +50,7 @@ func cloneAny(v reflect.Value) reflect.Value {
 		panic("it's an interface")
 	case reflect.Map:
 	case reflect.Pointer:
+		return clonePointer(v)
 	case reflect.Slice:
 		return cloneSlice(v)
 	case reflect.String:
@@ -75,6 +76,18 @@ func cloneArray(v reflect.Value) reflect.Value {
 	}
 
 	return c.Elem()
+}
+
+func clonePointer(v reflect.Value) reflect.Value {
+	if v.IsNil() {
+		return v
+	}
+
+	x := v.Elem()
+	y := cloneAny(x)
+	c := reflect.New(v.Elem().Type())
+	c.Elem().Set(y)
+	return c
 }
 
 func cloneSlice(v reflect.Value) reflect.Value {

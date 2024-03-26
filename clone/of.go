@@ -49,6 +49,7 @@ func cloneAny(v reflect.Value) reflect.Value {
 	case reflect.Interface:
 		panic("it's an interface")
 	case reflect.Map:
+		return cloneMap(v)
 	case reflect.Pointer:
 		return clonePointer(v)
 	case reflect.Slice:
@@ -87,6 +88,25 @@ func clonePointer(v reflect.Value) reflect.Value {
 	y := cloneAny(x)
 	c := reflect.New(v.Elem().Type())
 	c.Elem().Set(y)
+	return c
+}
+
+func cloneMap(v reflect.Value) reflect.Value {
+	if v.IsNil() {
+		return v
+	}
+
+	l := v.Len()
+	c := reflect.MakeMapWithSize(v.Type(), l)
+
+	r := v.MapRange()
+	for r.Next() {
+		k := r.Key()
+		x := r.Value()
+		y := cloneAny(x)
+		c.SetMapIndex(k, y)
+	}
+
 	return c
 }
 

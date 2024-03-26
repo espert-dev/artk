@@ -151,6 +151,54 @@ func TestOf_pointers(t *testing.T) {
 	})
 }
 
+func TestOf_maps(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		input map[int]bool
+	}{
+		{
+			name:  "nil",
+			input: nil,
+		},
+		{
+			name:  "empty",
+			input: map[int]bool{},
+		},
+		{
+			name:  "one",
+			input: map[int]bool{0: true},
+		},
+		{
+			name:  "two",
+			input: map[int]bool{0: true, 1: false},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			c := clone.Of(tt.input)
+			if same(tt.input, c) {
+				t.Errorf("unexpected not nil")
+			}
+			if lv, lc := len(tt.input), len(c); lv != lc {
+				t.Errorf("different lengths: %v, %v", lv, lc)
+			}
+			for k, x := range tt.input {
+				y, ok := c[k]
+				if !ok {
+					t.Errorf("missing key: %v", k)
+				}
+				if x != y {
+					t.Errorf(
+						"on %v: expected %v, got %v",
+						k,
+						x,
+						y,
+					)
+				}
+			}
+		})
+	}
+}
+
 func TestOf_slices(t *testing.T) {
 	testSlice(t, []bool(nil))
 	testSlice(t, []bool{})
@@ -187,12 +235,8 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 		}
 
 		// Sharing is never an issue if the slices are empty.
-		if len(slice) != 0 {
-			ps := reflect.ValueOf(slice).Pointer()
-			pc := reflect.ValueOf(c).Pointer()
-			if ps == pc {
-				t.Errorf("the slices share memory")
-			}
+		if len(slice) != 0 && same(slice, c) {
+			t.Errorf("unexpected shallow copy")
 		}
 	})
 }
@@ -211,4 +255,22 @@ func testString[T ~string](t *testing.T, s T) {
 			t.Errorf("expected %v, got %v", s, c)
 		}
 	})
+}
+
+// same checks if the two objects share memory (i.e., are shallow copies).
+func same[T any](x, y T) bool {
+	vx := reflect.ValueOf(x)
+	vy := reflect.ValueOf(y)
+
+	// Checking the validity of the value is necessary for interface types.
+	if !vx.IsValid() || !vy.IsValid() {
+		return false
+	}
+
+	// Checking for nil is necessary for concrete types.
+	if vx.IsNil() || vy.IsNil() {
+		return false
+	}
+
+	return vx.Pointer() == vy.Pointer()
 }

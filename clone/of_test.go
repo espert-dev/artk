@@ -111,7 +111,7 @@ func testArray[T comparable](t *testing.T, array [2]T) {
 	})
 }
 
-func TestOf_interface(t *testing.T) {
+func TestOf_interfaces(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		var v any
 		c := clone.Of(v)

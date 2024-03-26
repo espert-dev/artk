@@ -69,8 +69,9 @@ func cloneArray(v reflect.Value) reflect.Value {
 
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
-		e := v.Index(i)
-		c.Elem().Index(i).Set(e)
+		x := v.Index(i)
+		y := cloneAny(x)
+		c.Elem().Index(i).Set(y)
 	}
 
 	return c.Elem()
@@ -88,8 +89,9 @@ func cloneSlice(v reflect.Value) reflect.Value {
 
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
-		e := v.Index(i)
-		c.Index(i).Set(e)
+		x := v.Index(i)
+		y := cloneAny(x)
+		c.Index(i).Set(y)
 	}
 
 	return c

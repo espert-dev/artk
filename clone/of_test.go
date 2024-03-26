@@ -111,6 +111,23 @@ func testArray[T comparable](t *testing.T, array [2]T) {
 	})
 }
 
+func TestOf_interface(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		var v any
+		c := clone.Of(v)
+		if v != c {
+			t.Errorf("expected %v, got %v", v, c)
+		}
+	})
+	t.Run("not nil", func(t *testing.T) {
+		var v any = true
+		c := clone.Of(v)
+		if v != c {
+			t.Errorf("expected %v, got %v", v, c)
+		}
+	})
+}
+
 func TestOf_slices(t *testing.T) {
 	testSlice(t, []bool(nil))
 	testSlice(t, []bool{})

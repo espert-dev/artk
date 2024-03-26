@@ -8,13 +8,20 @@ import (
 // Of returns a clone of the passed object. Private fields are not cloned.
 func Of[T any](x T) T {
 	v := reflect.ValueOf(x)
+
+	// Can handle nil interface values.
+	if !v.IsValid() {
+		var zero T
+		return zero
+	}
+
 	c := cloneAny(v)
 	return c.Interface().(T)
 }
 
 func cloneAny(v reflect.Value) reflect.Value {
-	// Must cover all values of reflect.Kind
-	switch v.Type().Kind() {
+	// Must cover all values of reflect.Kind.
+	switch v.Kind() {
 	case reflect.Invalid:
 		panic("invalid kind")
 	case reflect.Bool,
@@ -40,6 +47,7 @@ func cloneAny(v reflect.Value) reflect.Value {
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
+		panic("it's an interface")
 	case reflect.Map:
 	case reflect.Pointer:
 	case reflect.Slice:

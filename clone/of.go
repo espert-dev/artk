@@ -68,7 +68,8 @@ func cloneAny(v reflect.Value) reflect.Value {
 func cloneArray(v reflect.Value) reflect.Value {
 	// In arrays, the length is a property of the type, not the value.
 	l := v.Type().Len()
-	c := reflect.New(reflect.ArrayOf(l, v.Type().Elem()))
+	t := v.Type().Elem()
+	c := reflect.New(reflect.ArrayOf(l, t))
 
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
@@ -87,7 +88,9 @@ func clonePointer(v reflect.Value) reflect.Value {
 
 	x := v.Elem()
 	y := cloneAny(x)
-	c := reflect.New(v.Elem().Type())
+
+	t := x.Type()
+	c := reflect.New(t)
 	c.Elem().Set(y)
 	return c
 }
@@ -97,8 +100,9 @@ func cloneMap(v reflect.Value) reflect.Value {
 		return v
 	}
 
+	t := v.Type()
 	l := v.Len()
-	c := reflect.MakeMapWithSize(v.Type(), l)
+	c := reflect.MakeMapWithSize(t, l)
 
 	r := v.MapRange()
 	for r.Next() {
@@ -118,8 +122,9 @@ func cloneSlice(v reflect.Value) reflect.Value {
 
 	// Set capacity to length.
 	// Note that in slices, this is a property of the value, not the type.
+	t := v.Type()
 	l := v.Len()
-	c := reflect.MakeSlice(v.Type(), l, l)
+	c := reflect.MakeSlice(t, l, l)
 
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
@@ -132,5 +137,6 @@ func cloneSlice(v reflect.Value) reflect.Value {
 }
 
 func cloneStruct(v reflect.Value) reflect.Value {
-	return reflect.Zero(v.Type())
+	t := v.Type()
+	return reflect.Zero(t)
 }

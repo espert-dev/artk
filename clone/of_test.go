@@ -242,17 +242,21 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 }
 
 func TestOf_string(t *testing.T) {
-	testString(t, "")
-	testString(t, stringType(""))
-	testString(t, "foo")
-	testString(t, stringType("foo"))
+	testDeepEqual(t, "")
+	testDeepEqual(t, stringType(""))
+	testDeepEqual(t, "foo")
+	testDeepEqual(t, stringType("foo"))
 }
 
-func testString[T ~string](t *testing.T, s T) {
+func TestOf_struct(t *testing.T) {
+	testDeepEqual(t, struct{}{})
+}
+
+func testDeepEqual(t *testing.T, v any) {
 	t.Helper()
-	t.Run(fmt.Sprintf("%T(%v)", s, s), func(t *testing.T) {
-		if c := clone.Of(s); c != s {
-			t.Errorf("expected %v, got %v", s, c)
+	t.Run(fmt.Sprintf("%T(%v)", v, v), func(t *testing.T) {
+		if c := clone.Of(v); !reflect.DeepEqual(c, v) {
+			t.Errorf("expected '%v', got '%v'", v, c)
 		}
 	})
 }

@@ -58,6 +58,7 @@ func cloneAny(v reflect.Value) reflect.Value {
 		// Strings are immutable in Go.
 		return v
 	case reflect.Struct:
+		return cloneStruct(v)
 	case reflect.UnsafePointer:
 	}
 
@@ -128,4 +129,8 @@ func cloneSlice(v reflect.Value) reflect.Value {
 	}
 
 	return c
+}
+
+func cloneStruct(v reflect.Value) reflect.Value {
+	return reflect.Zero(v.Type())
 }

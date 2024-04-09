@@ -277,6 +277,27 @@ func TestOf_struct(t *testing.T) {
 	testDeepEqual(t, l)
 }
 
+func TestOf_cyclic_structure(t *testing.T) {
+	type LinkedListNode struct {
+		Value int
+		Next  *LinkedListNode
+	}
+	first := &LinkedListNode{
+		Value: 0,
+		Next:  nil,
+	}
+	second := &LinkedListNode{
+		Value: 1,
+		Next:  first,
+	}
+	first.Next = second
+
+	c := clone.Of(first)
+	if c.Next.Next != c {
+		t.Error("cyclic structure not preserved")
+	}
+}
+
 func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
 	defer func() {
 		r := recover()

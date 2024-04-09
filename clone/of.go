@@ -16,12 +16,16 @@ func Of[T any](x T) T {
 		return zero
 	}
 
-	k := cloner{}
+	k := cloner{
+		KnownPointers: make(map[uintptr]reflect.Value),
+	}
 	c := k.cloneAny(v)
 	return c.Interface().(T)
 }
 
-type cloner struct{}
+type cloner struct {
+	KnownPointers map[uintptr]reflect.Value
+}
 
 func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 	// Must cover all values of reflect.Kind.
@@ -90,12 +94,21 @@ func (k cloner) clonePointer(v reflect.Value) reflect.Value {
 		return v
 	}
 
-	x := v.Elem()
-	y := k.cloneAny(x)
+	p := v.Pointer()
+	if v, ok := k.KnownPointers[p]; ok {
+		return v
+	}
 
+	x := v.Elem()
 	t := x.Type()
 	c := reflect.New(t)
+
+	// Must allocate the known pointer before recursing into cloneAny.
+	k.KnownPointers[p] = c
+
+	y := k.cloneAny(x)
 	c.Elem().Set(y)
+
 	return c
 }
 
@@ -104,9 +117,17 @@ func (k cloner) cloneMap(v reflect.Value) reflect.Value {
 		return v
 	}
 
+	p := v.Pointer()
+	if v, ok := k.KnownPointers[p]; ok {
+		return v
+	}
+
 	t := v.Type()
 	l := v.Len()
 	c := reflect.MakeMapWithSize(t, l)
+
+	// Must allocate the known pointer before recursing into cloneAny.
+	k.KnownPointers[p] = c
 
 	r := v.MapRange()
 	for r.Next() {
@@ -124,11 +145,19 @@ func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
 		return v
 	}
 
+	p := v.Pointer()
+	if v, ok := k.KnownPointers[p]; ok {
+		return v
+	}
+
 	// Set capacity to length.
 	// Note that in slices, this is a property of the value, not the type.
 	t := v.Type()
 	l := v.Len()
 	c := reflect.MakeSlice(t, l, l)
+
+	// Must allocate the known pointer before recursing into cloneAny.
+	k.KnownPointers[p] = c
 
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {

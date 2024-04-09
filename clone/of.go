@@ -2,6 +2,7 @@
 package clone
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -138,5 +139,30 @@ func cloneSlice(v reflect.Value) reflect.Value {
 
 func cloneStruct(v reflect.Value) reflect.Value {
 	t := v.Type()
-	return reflect.Zero(t)
+
+	// We cannot use reflect.Zero because it returns a non-addressable
+	// value, which would then fail when setting fields.
+	c := reflect.New(t)
+
+	n := t.NumField()
+	for i := 0; i < n; i++ {
+		f := t.Field(i)
+
+		// The package reflect will panic on attempts to set an
+		// unexported value. We preempt this situation to provide
+		// a friendlier error message.
+		if !f.IsExported() {
+			panic(fmt.Sprintf(
+				"struct has unexported fields: %v.%v",
+				t.Name(),
+				f.Name,
+			))
+		}
+
+		x := v.Field(i)
+		y := cloneAny(x)
+		c.Elem().Field(i).Set(y)
+	}
+
+	return c.Elem()
 }

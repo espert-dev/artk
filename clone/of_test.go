@@ -5,6 +5,7 @@ import (
 	"github.com/jespert/artk/clone"
 	"math"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -250,13 +251,72 @@ func TestOf_string(t *testing.T) {
 
 func TestOf_struct(t *testing.T) {
 	testDeepEqual(t, struct{}{})
+
+	type IntStruct struct {
+		X int
+	}
+	testDeepEqual(t, IntStruct{X: 1})
+
+	type Point struct {
+		X, Y, Z float64
+	}
+	testDeepEqual(t, Point{X: 0.0, Y: 1.0, Z: -1.0})
+
+	type LinkedListNode struct {
+		Value Point
+		Next  *LinkedListNode
+	}
+	l := &LinkedListNode{
+		Value: Point{X: 0.0, Y: 1.0, Z: -1.0},
+		Next:  nil,
+	}
+	l = &LinkedListNode{
+		Value: Point{X: 10, Y: 11, Z: 12},
+		Next:  l,
+	}
+	testDeepEqual(t, l)
+}
+
+func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("expected a panic that did not happen")
+		}
+
+		s, ok := r.(string)
+		if !ok {
+			t.Fatal("panic value was not a string")
+		}
+
+		const why = "struct has unexported fields"
+		if !strings.Contains(s, why) {
+			t.Error("missing cause of panic")
+		}
+
+		const structName = "StructWithPrivateFields"
+		if !strings.Contains(s, structName) {
+			t.Error("missing struct name")
+		}
+
+		const unexportedFieldName = "anUnexportedField"
+		if !strings.Contains(s, unexportedFieldName) {
+			t.Error("missing struct name")
+		}
+	}()
+
+	type StructWithPrivateFields struct {
+		Public            int
+		anUnexportedField int
+	}
+	clone.Of(StructWithPrivateFields{Public: 1, anUnexportedField: 2})
 }
 
 func testDeepEqual(t *testing.T, v any) {
 	t.Helper()
 	t.Run(fmt.Sprintf("%T(%v)", v, v), func(t *testing.T) {
 		if c := clone.Of(v); !reflect.DeepEqual(c, v) {
-			t.Errorf("expected '%v', got '%v'", v, c)
+			t.Errorf("expected '%+v', got '%+v'", v, c)
 		}
 	})
 }

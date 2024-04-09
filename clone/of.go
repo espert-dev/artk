@@ -16,11 +16,14 @@ func Of[T any](x T) T {
 		return zero
 	}
 
-	c := cloneAny(v)
+	k := cloner{}
+	c := k.cloneAny(v)
 	return c.Interface().(T)
 }
 
-func cloneAny(v reflect.Value) reflect.Value {
+type cloner struct{}
+
+func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 	// Must cover all values of reflect.Kind.
 	switch v.Kind() {
 	case reflect.Invalid:
@@ -44,29 +47,29 @@ func cloneAny(v reflect.Value) reflect.Value {
 		// Returning the value is enough for these value types.
 		return v
 	case reflect.Array:
-		return cloneArray(v)
+		return k.cloneArray(v)
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
 		panic("it's an interface")
 	case reflect.Map:
-		return cloneMap(v)
+		return k.cloneMap(v)
 	case reflect.Pointer:
-		return clonePointer(v)
+		return k.clonePointer(v)
 	case reflect.Slice:
-		return cloneSlice(v)
+		return k.cloneSlice(v)
 	case reflect.String:
 		// Strings are immutable in Go.
 		return v
 	case reflect.Struct:
-		return cloneStruct(v)
+		return k.cloneStruct(v)
 	case reflect.UnsafePointer:
 	}
 
 	panic("unsupported kind")
 }
 
-func cloneArray(v reflect.Value) reflect.Value {
+func (k cloner) cloneArray(v reflect.Value) reflect.Value {
 	// In arrays, the length is a property of the type, not the value.
 	l := v.Type().Len()
 	t := v.Type().Elem()
@@ -75,20 +78,20 @@ func cloneArray(v reflect.Value) reflect.Value {
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
 		x := v.Index(i)
-		y := cloneAny(x)
+		y := k.cloneAny(x)
 		c.Elem().Index(i).Set(y)
 	}
 
 	return c.Elem()
 }
 
-func clonePointer(v reflect.Value) reflect.Value {
+func (k cloner) clonePointer(v reflect.Value) reflect.Value {
 	if v.IsNil() {
 		return v
 	}
 
 	x := v.Elem()
-	y := cloneAny(x)
+	y := k.cloneAny(x)
 
 	t := x.Type()
 	c := reflect.New(t)
@@ -96,7 +99,7 @@ func clonePointer(v reflect.Value) reflect.Value {
 	return c
 }
 
-func cloneMap(v reflect.Value) reflect.Value {
+func (k cloner) cloneMap(v reflect.Value) reflect.Value {
 	if v.IsNil() {
 		return v
 	}
@@ -107,16 +110,16 @@ func cloneMap(v reflect.Value) reflect.Value {
 
 	r := v.MapRange()
 	for r.Next() {
-		k := r.Key()
+		key := r.Key()
 		x := r.Value()
-		y := cloneAny(x)
-		c.SetMapIndex(k, y)
+		y := k.cloneAny(x)
+		c.SetMapIndex(key, y)
 	}
 
 	return c
 }
 
-func cloneSlice(v reflect.Value) reflect.Value {
+func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
 	if v.IsNil() {
 		return v
 	}
@@ -130,14 +133,14 @@ func cloneSlice(v reflect.Value) reflect.Value {
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
 		x := v.Index(i)
-		y := cloneAny(x)
+		y := k.cloneAny(x)
 		c.Index(i).Set(y)
 	}
 
 	return c
 }
 
-func cloneStruct(v reflect.Value) reflect.Value {
+func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	t := v.Type()
 
 	// We cannot use reflect.Zero because it returns a non-addressable
@@ -160,7 +163,7 @@ func cloneStruct(v reflect.Value) reflect.Value {
 		}
 
 		x := v.Field(i)
-		y := cloneAny(x)
+		y := k.cloneAny(x)
 		c.Elem().Field(i).Set(y)
 	}
 

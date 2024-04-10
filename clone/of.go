@@ -23,7 +23,7 @@ func AssumeImmutable(example any) {
 		panic("only struct types can be declared immutable")
 	}
 
-	key := typeID(t)
+	key := typeIdOf(t)
 	immutableTypes[key] = struct{}{}
 }
 
@@ -195,7 +195,7 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 
 	// Handle immutable types such as time.Time, which contain unexported
 	// fields but can be shared without concern.
-	tid := typeID(t)
+	tid := typeIdOf(t)
 	if _, ok := immutableTypes[tid]; ok {
 		return v
 	}
@@ -233,8 +233,12 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	return c
 }
 
-func typeID(t reflect.Type) string {
-	return t.PkgPath() + "." + t.Name()
+// typeIdOf returns a global key for a type.
+func typeIdOf(t reflect.Type) typeId {
+	return typeId{
+		PkgPath: t.PkgPath(),
+		Name:    t.Name(),
+	}
 }
 
 // init adds immutable types defined by the standard library.
@@ -242,4 +246,10 @@ func init() {
 	AssumeImmutable(time.Time{})
 }
 
-var immutableTypes = make(map[string]struct{})
+// typeId represents the global key for a type.
+type typeId struct {
+	PkgPath string
+	Name    string
+}
+
+var immutableTypes = make(map[typeId]struct{})

@@ -548,7 +548,22 @@ func TestOf_immutable_struct_types_are_shallow_copied(t *testing.T) {
 		t.Errorf("expected deep equality")
 	}
 	if !same(v.Slice, c.Slice) {
-		t.Error("expected shallow copy")
+		t.Error("expected a shallow copy")
+	}
+}
+
+func TestOf_mutable_struct_types_are_deep_copied(t *testing.T) {
+	type Mutable struct {
+		Slice []int
+	}
+
+	v := Mutable{Slice: []int{0, 1, 2}}
+	c := clone.Of(v)
+	if !reflect.DeepEqual(v, c) {
+		t.Errorf("expected deep equality")
+	}
+	if same(v.Slice, c.Slice) {
+		t.Error("expected a deep copy")
 	}
 }
 

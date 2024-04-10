@@ -177,12 +177,12 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	c := reflect.New(t)
 
 	n := t.NumField()
+
+	// The package reflect will panic on attempts to set an
+	// unexported value. We preempt this situation to provide
+	// a friendlier error message.
 	for i := 0; i < n; i++ {
 		f := t.Field(i)
-
-		// The package reflect will panic on attempts to set an
-		// unexported value. We preempt this situation to provide
-		// a friendlier error message.
 		if !f.IsExported() {
 			panic(fmt.Sprintf(
 				"struct has unexported fields: %v.%v",
@@ -190,7 +190,10 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 				f.Name,
 			))
 		}
+	}
 
+	// Recursively clone fields.
+	for i := 0; i < n; i++ {
 		x := v.Field(i)
 		y := k.cloneAny(x)
 		c.Elem().Field(i).Set(y)

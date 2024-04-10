@@ -49,10 +49,10 @@ type cloner struct {
 }
 
 func (k cloner) cloneAny(v reflect.Value) reflect.Value {
-	// Must cover all values of reflect.Kind.
-	switch v.Kind() {
-	case reflect.Invalid:
-		panic("invalid kind")
+	// Must cover all values of reflect.Kind, except for Invalid, which
+	// is handled at the top-level in Of.
+	kind := v.Kind()
+	switch kind {
 	case reflect.Bool,
 		reflect.Int,
 		reflect.Int8,
@@ -74,7 +74,9 @@ func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 	case reflect.Array:
 		return k.cloneArray(v)
 	case reflect.Chan:
+		// Not supported.
 	case reflect.Func:
+		// Not supported.
 	case reflect.Interface:
 		return k.cloneInterface(v)
 	case reflect.Map:
@@ -89,9 +91,10 @@ func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 	case reflect.Struct:
 		return k.cloneStruct(v)
 	case reflect.UnsafePointer:
+
 	}
 
-	panic("unsupported kind")
+	panic("unsupported kind: " + kind.String())
 }
 
 func (k cloner) cloneArray(v reflect.Value) reflect.Value {

@@ -456,6 +456,42 @@ func TestOf_cyclic_struct(t *testing.T) {
 	}
 }
 
+func TestOf_cannot_clone_channels(t *testing.T) {
+	defer handleUnsupportedKind(t, reflect.Chan)
+	v := chan struct{}(nil)
+	clone.Of(v)
+}
+
+func TestOf_cannot_clone_functions(t *testing.T) {
+	defer handleUnsupportedKind(t, reflect.Func)
+	v := func() {}
+	clone.Of(v)
+}
+
+func TestOf_cannot_clone_unsafe_pointers(t *testing.T) {
+	defer handleUnsupportedKind(t, reflect.UnsafePointer)
+	v := unsafe.Pointer(nil)
+	clone.Of(v)
+}
+
+func handleUnsupportedKind(t *testing.T, kind reflect.Kind) {
+	r := recover()
+	if r == nil {
+		t.Fatal("missing expected panic")
+	}
+
+	s, ok := r.(string)
+	if !ok {
+		t.Fatal("expected a string panic value")
+	}
+	if !strings.Contains(s, "unsupported kind") {
+		t.Error("missing reason for failure")
+	}
+	if !strings.Contains(s, kind.String()) {
+		t.Error("missing kind")
+	}
+}
+
 func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
 	defer func() {
 		r := recover()

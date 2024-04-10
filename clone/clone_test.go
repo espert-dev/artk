@@ -538,32 +538,56 @@ func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
 
 func TestOf_immutable_struct_types_are_shallow_copied(t *testing.T) {
 	type Immutable struct {
-		Slice []int
+		Slice   []int
+		Map     map[int]struct{}
+		Pointer *int
 	}
 	clone.AsImmutableType(Immutable{})
 
-	v := Immutable{Slice: []int{0, 1, 2}}
+	v := Immutable{
+		Slice:   []int{0, 1, 2},
+		Map:     map[int]struct{}{0: {}, 1: {}, 2: {}},
+		Pointer: new(int),
+	}
 	c := clone.Of(v)
 	if !reflect.DeepEqual(v, c) {
 		t.Errorf("expected deep equality")
 	}
 	if !same(v.Slice, c.Slice) {
-		t.Error("expected a shallow copy")
+		t.Error("expected a shallow copy of the slice")
+	}
+	if !same(v.Map, c.Map) {
+		t.Error("expected a shallow copy of the map")
+	}
+	if !same(v.Pointer, c.Pointer) {
+		t.Error("expected a shallow copy of the pointer")
 	}
 }
 
 func TestOf_mutable_struct_types_are_deep_copied(t *testing.T) {
 	type Mutable struct {
-		Slice []int
+		Slice   []int
+		Map     map[int]struct{}
+		Pointer *int
 	}
 
-	v := Mutable{Slice: []int{0, 1, 2}}
+	v := Mutable{
+		Slice:   []int{0, 1, 2},
+		Map:     map[int]struct{}{0: {}, 1: {}, 2: {}},
+		Pointer: new(int),
+	}
 	c := clone.Of(v)
 	if !reflect.DeepEqual(v, c) {
 		t.Errorf("expected deep equality")
 	}
 	if same(v.Slice, c.Slice) {
-		t.Error("expected a deep copy")
+		t.Error("expected a deep copy of the slice")
+	}
+	if same(v.Map, c.Map) {
+		t.Error("expected a deep copy of the map")
+	}
+	if same(v.Pointer, c.Pointer) {
+		t.Error("expected a deep copy of the pointer")
 	}
 }
 

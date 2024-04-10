@@ -380,7 +380,33 @@ func TestOf_struct(t *testing.T) {
 	testDeepEqual(t, l)
 }
 
-func TestOf_cyclic_structure(t *testing.T) {
+func TestOf_cyclic_map(t *testing.T) {
+	v := make(map[string]any)
+	v["next"] = v
+
+	c := clone.Of(v)
+	if same(v, c) {
+		t.Errorf("unexpected shallow copy")
+	}
+	if !same(v["next"], any(v)) {
+		t.Error("cyclic structure not preserved")
+	}
+}
+
+func TestOf_cyclic_slice(t *testing.T) {
+	v := make([]any, 1)
+	v[0] = v
+
+	c := clone.Of(v)
+	if same(v, c) {
+		t.Errorf("unexpected shallow copy")
+	}
+	if !same(v[0], any(v)) {
+		t.Error("cyclic structure not preserved")
+	}
+}
+
+func TestOf_cyclic_struct(t *testing.T) {
 	type LinkedListNode struct {
 		Value int
 		Next  *LinkedListNode

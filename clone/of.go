@@ -76,7 +76,7 @@ func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 	case reflect.Chan:
 	case reflect.Func:
 	case reflect.Interface:
-		panic("it's an interface")
+		return k.cloneInterface(v)
 	case reflect.Map:
 		return k.cloneMap(v)
 	case reflect.Pointer:
@@ -110,11 +110,22 @@ func (k cloner) cloneArray(v reflect.Value) reflect.Value {
 	return c.Elem()
 }
 
-func (k cloner) clonePointer(v reflect.Value) reflect.Value {
+func (k cloner) cloneInterface(v reflect.Value) reflect.Value {
+	// Nil values cannot lead to shallow copies.
 	if v.IsNil() {
 		return v
 	}
 
+	return k.cloneAny(v.Elem())
+}
+
+func (k cloner) clonePointer(v reflect.Value) reflect.Value {
+	// Nil values cannot lead to shallow copies.
+	if v.IsNil() {
+		return v
+	}
+
+	// Support cyclic data structures by reusing pointers.
 	p := v.Pointer()
 	if v, ok := k.KnownPointers[p]; ok {
 		return v
@@ -124,7 +135,7 @@ func (k cloner) clonePointer(v reflect.Value) reflect.Value {
 	t := x.Type()
 	c := reflect.New(t)
 
-	// Must allocate the known pointer before recursing into cloneAny.
+	// Must save the known pointer before recursing into cloneAny.
 	k.KnownPointers[p] = c
 
 	y := k.cloneAny(x)
@@ -134,10 +145,12 @@ func (k cloner) clonePointer(v reflect.Value) reflect.Value {
 }
 
 func (k cloner) cloneMap(v reflect.Value) reflect.Value {
+	// Nil values cannot lead to shallow copies.
 	if v.IsNil() {
 		return v
 	}
 
+	// Support cyclic data structures by reusing pointers.
 	p := v.Pointer()
 	if v, ok := k.KnownPointers[p]; ok {
 		return v
@@ -147,7 +160,7 @@ func (k cloner) cloneMap(v reflect.Value) reflect.Value {
 	l := v.Len()
 	c := reflect.MakeMapWithSize(t, l)
 
-	// Must allocate the known pointer before recursing into cloneAny.
+	// Must save the known pointer before recursing into cloneAny.
 	k.KnownPointers[p] = c
 
 	r := v.MapRange()
@@ -162,10 +175,12 @@ func (k cloner) cloneMap(v reflect.Value) reflect.Value {
 }
 
 func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
+	// Nil values cannot lead to shallow copies.
 	if v.IsNil() {
 		return v
 	}
 
+	// Support cyclic data structures by reusing pointers.
 	p := v.Pointer()
 	if v, ok := k.KnownPointers[p]; ok {
 		return v
@@ -177,7 +192,7 @@ func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
 	l := v.Len()
 	c := reflect.MakeSlice(t, l, l)
 
-	// Must allocate the known pointer before recursing into cloneAny.
+	// Must save the known pointer before recursing into cloneAny.
 	k.KnownPointers[p] = c
 
 	// We avoid reflect.Copy, which would result in a shadow copy.

@@ -7,27 +7,35 @@ import (
 	"time"
 )
 
-// AssumeImmutable declares the type of the example value as immutable.
+// AsImmutable declares the type of the example value as immutable.
 //
 // Immutable types will not be deep copied.
 // Only struct types can be assumed to be immutable.
 // Cloning a value of an immutable type will never panic, even if it has
 // unexported fields.
-func AssumeImmutable(example any) {
+func AsImmutable(example any) {
 	if example == nil {
 		panic("example cannot be nil")
 	}
 
 	t := reflect.TypeOf(example)
 	if t.Kind() != reflect.Struct {
-		panic("only struct types can be declared immutable")
+		panic("only structs can be declared immutable")
 	}
 
 	key := typeIdOf(t)
-	immutableTypes[key] = struct{}{}
+	immutableStructTypes[key] = struct{}{}
 }
 
-// Of returns a clone of the passed object. Private fields are not cloned.
+// Of returns a clone (AKA deep copy) of the passed object.
+//
+// This function will panic if any of the below conditions are met:
+//
+//   - The value is or contains a channel.
+//   - The value is or contains a function.
+//   - The value is or contains an unsafe pointer.
+//   - The value is or contains a struct with unexported fields, except if
+//     that struct that has been marked with AsImmutable.
 func Of[T any](x T) T {
 	v := reflect.ValueOf(x)
 
@@ -38,21 +46,18 @@ func Of[T any](x T) T {
 	}
 
 	k := cloner{
-		KnownPointers: make(map[uintptr]reflect.Value),
+		knownPointers: make(map[uintptr]reflect.Value),
 	}
 	c := k.cloneAny(v)
 	return c.Interface().(T)
 }
 
 type cloner struct {
-	KnownPointers map[uintptr]reflect.Value
+	knownPointers map[uintptr]reflect.Value
 }
 
 func (k cloner) cloneAny(v reflect.Value) reflect.Value {
-	// Must cover all values of reflect.Kind, except for Invalid, which
-	// is handled at the top-level in Of.
-	kind := v.Kind()
-	switch kind {
+	switch kind := v.Kind(); kind {
 	case reflect.Bool,
 		reflect.Int,
 		reflect.Int8,
@@ -68,15 +73,12 @@ func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 		reflect.Float32,
 		reflect.Float64,
 		reflect.Complex64,
-		reflect.Complex128:
-		// Returning the value is enough for these value types.
+		reflect.Complex128,
+		reflect.String:
+		// These kinds cannot introduce shallow copy.
 		return v
 	case reflect.Array:
 		return k.cloneArray(v)
-	case reflect.Chan:
-		// Not supported.
-	case reflect.Func:
-		// Not supported.
 	case reflect.Interface:
 		return k.cloneInterface(v)
 	case reflect.Map:
@@ -85,16 +87,11 @@ func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 		return k.clonePointer(v)
 	case reflect.Slice:
 		return k.cloneSlice(v)
-	case reflect.String:
-		// Strings are immutable in Go.
-		return v
 	case reflect.Struct:
 		return k.cloneStruct(v)
-	case reflect.UnsafePointer:
-
+	default:
+		panic("unsupported kind: " + kind.String())
 	}
-
-	panic("unsupported kind: " + kind.String())
 }
 
 func (k cloner) cloneArray(v reflect.Value) reflect.Value {
@@ -103,11 +100,14 @@ func (k cloner) cloneArray(v reflect.Value) reflect.Value {
 	l := t.Len()
 	e := t.Elem()
 
-	// We need an addressable value, but we don't care about the actual
-	// address, so we immediately take Elem.
+	// Allocate memory for the cloned object.
+	//
+	// While it needs an addressable value, the particular address is
+	// irrelevant. Hence, we immediately take Elem.
 	c := reflect.New(reflect.ArrayOf(l, e)).Elem()
 
-	// We avoid reflect.Copy, which would result in a shadow copy.
+	// Recursively copy contents.
+	// Avoid reflect.Copy, which would result in a shallow copy.
 	for i := 0; i < l; i++ {
 		x := v.Index(i)
 		y := k.cloneAny(x)
@@ -134,22 +134,23 @@ func (k cloner) clonePointer(v reflect.Value) reflect.Value {
 		return v
 	}
 
-	// Support cyclic data structures by reusing pointers.
+	// Support cyclic data structures by reusing allocated pointers.
 	p := v.Pointer()
-	if v, ok := k.KnownPointers[p]; ok {
+	if v, ok := k.knownPointers[p]; ok {
 		return v
 	}
 
+	// Allocate memory for the cloned object.
 	x := v.Elem()
 	t := x.Type()
 	c := reflect.New(t)
 
-	// Must save the known pointer before recursing into cloneAny.
-	k.KnownPointers[p] = c
+	// Save pointer before recursing to prevent double allocation.
+	k.knownPointers[p] = c
 
+	// Recursively copy pointed-to element.
 	y := k.cloneAny(x)
 	c.Elem().Set(y)
-
 	return c
 }
 
@@ -159,19 +160,21 @@ func (k cloner) cloneMap(v reflect.Value) reflect.Value {
 		return v
 	}
 
-	// Support cyclic data structures by reusing pointers.
+	// Support cyclic data structures by reusing allocated pointers.
 	p := v.Pointer()
-	if v, ok := k.KnownPointers[p]; ok {
+	if v, ok := k.knownPointers[p]; ok {
 		return v
 	}
 
+	// Allocate memory for the cloned object.
 	t := v.Type()
 	l := v.Len()
 	c := reflect.MakeMapWithSize(t, l)
 
-	// Must save the known pointer before recursing into cloneAny.
-	k.KnownPointers[p] = c
+	// Save pointer before recursing to prevent double allocation.
+	k.knownPointers[p] = c
 
+	// Recursively copy contents.
 	r := v.MapRange()
 	for r.Next() {
 		key := r.Key()
@@ -189,22 +192,25 @@ func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
 		return v
 	}
 
-	// Support cyclic data structures by reusing pointers.
+	// Support cyclic data structures by reusing allocated pointers.
 	p := v.Pointer()
-	if v, ok := k.KnownPointers[p]; ok {
+	if v, ok := k.knownPointers[p]; ok {
 		return v
 	}
 
-	// Set capacity to length.
-	// Note that in slices, this is a property of the value, not the type.
+	// Allocate memory for the cloned object.
+	//
+	// Set capacity to length for memory efficiency. Note that in slices,
+	// the latter is a property of the value, not the type.
 	t := v.Type()
 	l := v.Len()
 	c := reflect.MakeSlice(t, l, l)
 
-	// Must save the known pointer before recursing into cloneAny.
-	k.KnownPointers[p] = c
+	// Save pointer before recursing to prevent double allocation.
+	k.knownPointers[p] = c
 
-	// We avoid reflect.Copy, which would result in a shadow copy.
+	// Recursively copy contents.
+	// Avoid reflect.Copy, which would result in a shallow copy.
 	for i := 0; i < l; i++ {
 		x := v.Index(i)
 		y := k.cloneAny(x)
@@ -220,10 +226,12 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	// Handle immutable types such as time.Time, which contain unexported
 	// fields but can be shared without concern.
 	tid := typeIdOf(t)
-	if _, ok := immutableTypes[tid]; ok {
+	if _, ok := immutableStructTypes[tid]; ok {
 		return v
 	}
 
+	// Allocate memory for the cloned object.
+	//
 	// We cannot use reflect.Zero because it returns a non-addressable
 	// value, which would then fail when setting fields. We don't actually
 	// care about the address, though, so we immediately take Elem.
@@ -267,7 +275,7 @@ func typeIdOf(t reflect.Type) typeId {
 
 // init adds immutable types defined by the standard library.
 func init() {
-	AssumeImmutable(time.Time{})
+	AsImmutable(time.Time{})
 }
 
 // typeId represents the global key for a type.
@@ -276,4 +284,5 @@ type typeId struct {
 	Name    string
 }
 
-var immutableTypes = make(map[typeId]struct{})
+// immutableStructTypes contains types that can be copied as values.
+var immutableStructTypes = make(map[typeId]struct{})

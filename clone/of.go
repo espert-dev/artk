@@ -31,7 +31,7 @@ func AssumeImmutable(example any) {
 func Of[T any](x T) T {
 	v := reflect.ValueOf(x)
 
-	// Can handle nil interface values.
+	// Handle top-level nil interface values.
 	if !v.IsValid() {
 		var zero T
 		return zero
@@ -116,7 +116,9 @@ func (k cloner) cloneInterface(v reflect.Value) reflect.Value {
 		return v
 	}
 
-	return k.cloneAny(v.Elem())
+	x := v.Elem()
+	y := k.cloneAny(x)
+	return y
 }
 
 func (k cloner) clonePointer(v reflect.Value) reflect.Value {

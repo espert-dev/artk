@@ -96,18 +96,22 @@ func (k cloner) cloneAny(v reflect.Value) reflect.Value {
 
 func (k cloner) cloneArray(v reflect.Value) reflect.Value {
 	// In arrays, the length is a property of the type, not the value.
-	l := v.Type().Len()
-	t := v.Type().Elem()
-	c := reflect.New(reflect.ArrayOf(l, t))
+	t := v.Type()
+	l := t.Len()
+	e := t.Elem()
+
+	// We need an addressable value, but we don't care about the actual
+	// address, so we immediately take Elem.
+	c := reflect.New(reflect.ArrayOf(l, e)).Elem()
 
 	// We avoid reflect.Copy, which would result in a shadow copy.
 	for i := 0; i < l; i++ {
 		x := v.Index(i)
 		y := k.cloneAny(x)
-		c.Elem().Index(i).Set(y)
+		c.Index(i).Set(y)
 	}
 
-	return c.Elem()
+	return c
 }
 
 func (k cloner) cloneInterface(v reflect.Value) reflect.Value {

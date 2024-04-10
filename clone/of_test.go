@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
+	"unsafe"
 )
 
 // Derived types to ensure that cloning works across the kind.
@@ -29,6 +31,107 @@ type (
 	complex128Type complex128
 	stringType     string
 )
+
+func TestAssumeImmutable_do_not_panic_on_unexported_fields(t *testing.T) {
+	// Unexported fields would panic if the type wasn't assumed immutable.
+	type ImmutableType struct {
+		unexportedField int
+	}
+	v := ImmutableType{unexportedField: 42}
+
+	clone.AssumeImmutable(ImmutableType{})
+	c := clone.Of(v)
+	if v != c {
+		t.Errorf("expected %v, got %v", v, c)
+	}
+}
+
+func TestAssumeImmutable_example_cannot_be_nil(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("missing expected panic")
+		}
+
+		s, ok := r.(string)
+		if !ok {
+			t.Fatal("expected string value")
+		}
+
+		const why = "example cannot be nil"
+		if !strings.Contains(s, why) {
+			t.Errorf("unexpected panic error: %v", s)
+		}
+	}()
+
+	clone.AssumeImmutable(nil)
+}
+
+func TestAssumeImmutable_type_cannot_be_anything_but_a_struct(t *testing.T) {
+	for _, v := range []any{
+		false,
+		boolType(false),
+		0,
+		intType(0),
+		int8(0),
+		int8Type(0),
+		int16(0),
+		int16Type(0),
+		int32(0),
+		int32Type(0),
+		int64(0),
+		int64Type(0),
+		uint(0),
+		uintType(0),
+		uint8(0),
+		uint8Type(0),
+		uint16(0),
+		uint16Type(0),
+		uint32(0),
+		uint32Type(0),
+		uint64(0),
+		uint64Type(0),
+		uintptr(0),
+		uintptrType(0),
+		float32(0),
+		float32Type(0),
+		float64(0),
+		float64Type(0),
+		complex64(0),
+		complex64Type(0),
+		complex128(0),
+		complex128Type(0),
+		[0]bool{},
+		func() {},
+		chan struct{}(nil),
+		&time.Time{},
+		map[bool]struct{}(nil),
+		[]bool(nil),
+		"",
+		stringType(""),
+		unsafe.Pointer(nil),
+	} {
+		t.Run(reflect.TypeOf(v).String(), func(t *testing.T) {
+			defer func() {
+				r := recover()
+				if r == nil {
+					t.Fatal("missing expected panic")
+				}
+
+				s, ok := r.(string)
+				if !ok {
+					t.Fatal("expected string value")
+				}
+
+				const why = "only struct types can be declared immutable"
+				if !strings.Contains(s, why) {
+					t.Errorf("unexpected panic error: %v", s)
+				}
+			}()
+			clone.AssumeImmutable(v)
+		})
+	}
+}
 
 func TestOf_trivial_copy(t *testing.T) {
 	// Don't test with NaN because comparison is always false.
@@ -331,6 +434,14 @@ func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
 		anUnexportedField int
 	}
 	clone.Of(StructWithPrivateFields{Public: 1, anUnexportedField: 2})
+}
+
+func TestOf_immutable_types_are_returned_back(t *testing.T) {
+	v := time.Now()
+	c := clone.Of(v)
+	if c != v {
+		t.Errorf("expected %v, got %v", v, c)
+	}
 }
 
 func testDeepEqual(t *testing.T, v any) {

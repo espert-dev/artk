@@ -4,7 +4,28 @@ package clone
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
+
+// AssumeImmutable declares the type of the example value as immutable.
+//
+// Immutable types will not be deep copied.
+// Only struct types can be assumed to be immutable.
+// Cloning a value of an immutable type will never panic, even if it has
+// unexported fields.
+func AssumeImmutable(example any) {
+	if example == nil {
+		panic("example cannot be nil")
+	}
+
+	t := reflect.TypeOf(example)
+	if t.Kind() != reflect.Struct {
+		panic("only struct types can be declared immutable")
+	}
+
+	key := typeID(t)
+	immutableTypes[key] = struct{}{}
+}
 
 // Of returns a clone of the passed object. Private fields are not cloned.
 func Of[T any](x T) T {
@@ -172,6 +193,13 @@ func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
 func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	t := v.Type()
 
+	// Handle immutable types such as time.Time, which contain unexported
+	// fields but can be shared without concern.
+	tid := typeID(t)
+	if _, ok := immutableTypes[tid]; ok {
+		return v
+	}
+
 	// We cannot use reflect.Zero because it returns a non-addressable
 	// value, which would then fail when setting fields. We don't actually
 	// care about the address, though, so we immediately take Elem.
@@ -204,3 +232,14 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 
 	return c
 }
+
+func typeID(t reflect.Type) string {
+	return t.PkgPath() + "." + t.Name()
+}
+
+// init adds immutable types defined by the standard library.
+func init() {
+	AssumeImmutable(time.Time{})
+}
+
+var immutableTypes = make(map[string]struct{})

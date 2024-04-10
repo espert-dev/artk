@@ -173,9 +173,12 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	t := v.Type()
 
 	// We cannot use reflect.Zero because it returns a non-addressable
-	// value, which would then fail when setting fields.
-	c := reflect.New(t)
+	// value, which would then fail when setting fields. We don't actually
+	// care about the address, though, so we immediately take Elem.
+	c := reflect.New(t).Elem()
 
+	// NumField is a method in an interface, not a simple accessor, so we
+	// cache it here since it's used twice.
 	n := t.NumField()
 
 	// The package reflect will panic on attempts to set an
@@ -196,8 +199,8 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	for i := 0; i < n; i++ {
 		x := v.Field(i)
 		y := k.cloneAny(x)
-		c.Elem().Field(i).Set(y)
+		c.Field(i).Set(y)
 	}
 
-	return c.Elem()
+	return c
 }

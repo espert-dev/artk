@@ -125,12 +125,12 @@ func TestAsImmutableType_is_idempotent(t *testing.T) {
 	clone.AsImmutableType(time.Time{})
 }
 
-func TestOf_can_clone_booleans(t *testing.T) {
+func TestOf_supports_booleans(t *testing.T) {
 	testValues(t, []bool{false, true})
 	testValues(t, []boolType{false, true})
 }
 
-func TestOf_can_clone_numbers(t *testing.T) {
+func TestOf_supports_numbers(t *testing.T) {
 	// Don't test with NaN because comparison is always false.
 	pInf := math.Inf(1)
 	nInf := math.Inf(-1)
@@ -185,7 +185,7 @@ func testValues[T comparable](t *testing.T, values []T) {
 	})
 }
 
-func TestOf_can_clone_arrays(t *testing.T) {
+func TestOf_supports_arrays(t *testing.T) {
 	testArray(t, [2]bool{})
 	testArray(t, [2]bool{})
 	testArray(t, [2]bool{false})
@@ -210,7 +210,7 @@ func testArray[T comparable](t *testing.T, array [2]T) {
 	})
 }
 
-func TestOf_can_clone_interfaces(t *testing.T) {
+func TestOf_supports_interfaces(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		var v any
 		c := clone.Of(v)
@@ -256,7 +256,7 @@ func TestOf_can_clone_interfaces(t *testing.T) {
 	})
 }
 
-func TestOf_can_clone_pointers(t *testing.T) {
+func TestOf_supports_pointers(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		var v *int
 
@@ -279,7 +279,7 @@ func TestOf_can_clone_pointers(t *testing.T) {
 	})
 }
 
-func TestOf_can_clone_acyclic_maps(t *testing.T) {
+func TestOf_supports_acyclic_maps(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		input map[int]bool
@@ -327,7 +327,7 @@ func TestOf_can_clone_acyclic_maps(t *testing.T) {
 	}
 }
 
-func TestOf_can_clone_cyclic_maps(t *testing.T) {
+func TestOf_supports_cyclic_maps(t *testing.T) {
 	v := make(map[string]any)
 	v["next"] = v
 
@@ -340,7 +340,7 @@ func TestOf_can_clone_cyclic_maps(t *testing.T) {
 	}
 }
 
-func TestOf_can_clone_acyclic_slices(t *testing.T) {
+func TestOf_supports_acyclic_slices(t *testing.T) {
 	testSlice(t, []bool(nil))
 	testSlice(t, []bool{})
 	testSlice(t, []bool{false})
@@ -382,7 +382,7 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 	})
 }
 
-func TestOf_can_clone_cyclic_slices(t *testing.T) {
+func TestOf_supports_cyclic_slices(t *testing.T) {
 	v := make([]any, 1)
 	v[0] = v
 
@@ -395,14 +395,14 @@ func TestOf_can_clone_cyclic_slices(t *testing.T) {
 	}
 }
 
-func TestOf_can_clone_strings(t *testing.T) {
+func TestOf_supports_strings(t *testing.T) {
 	testDeepEqual(t, "")
 	testDeepEqual(t, stringType(""))
 	testDeepEqual(t, "foo")
 	testDeepEqual(t, stringType("foo"))
 }
 
-func TestOf_can_clone_acyclic_structs_without_unexported_fields(t *testing.T) {
+func TestOf_supports_acyclic_structs_without_unexported_fields(t *testing.T) {
 	testDeepEqual(t, struct{}{})
 
 	type IntStruct struct {
@@ -430,7 +430,7 @@ func TestOf_can_clone_acyclic_structs_without_unexported_fields(t *testing.T) {
 	testDeepEqual(t, l)
 }
 
-func TestOf_can_clone_cyclic_structs_without_unexported_fields(t *testing.T) {
+func TestOf_supports_cyclic_structs_without_unexported_fields(t *testing.T) {
 	type LinkedListNode struct {
 		Value int
 		Next  *LinkedListNode
@@ -451,7 +451,7 @@ func TestOf_can_clone_cyclic_structs_without_unexported_fields(t *testing.T) {
 	}
 }
 
-func TestOf_can_clone_immutable_structs_with_unexported_fields(t *testing.T) {
+func TestOf_supports_immutable_structs_with_unexported_fields(t *testing.T) {
 	// Unexported fields would panic if the type wasn't assumed immutable.
 	type ImmutableType struct {
 		unexportedField int
@@ -463,77 +463,6 @@ func TestOf_can_clone_immutable_structs_with_unexported_fields(t *testing.T) {
 	if v != c {
 		t.Errorf("expected %v, got %v", v, c)
 	}
-}
-
-func TestOf_cannot_clone_channels(t *testing.T) {
-	defer handleUnsupportedKind(t, reflect.Chan)
-	v := chan struct{}(nil)
-	clone.Of(v)
-}
-
-func TestOf_cannot_clone_functions(t *testing.T) {
-	defer handleUnsupportedKind(t, reflect.Func)
-	v := func() {}
-	clone.Of(v)
-}
-
-func TestOf_cannot_clone_unsafe_pointers(t *testing.T) {
-	defer handleUnsupportedKind(t, reflect.UnsafePointer)
-	v := unsafe.Pointer(nil)
-	clone.Of(v)
-}
-
-func handleUnsupportedKind(t *testing.T, kind reflect.Kind) {
-	r := recover()
-	if r == nil {
-		t.Fatal("missing expected panic")
-	}
-
-	s, ok := r.(string)
-	if !ok {
-		t.Fatal("expected a string panic value")
-	}
-	if !strings.Contains(s, "unsupported kind") {
-		t.Error("missing reason for failure")
-	}
-	if !strings.Contains(s, kind.String()) {
-		t.Error("missing kind")
-	}
-}
-
-func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("missing expected panic")
-		}
-
-		s, ok := r.(string)
-		if !ok {
-			t.Fatal("expected a string panic value")
-		}
-
-		const why = "struct has unexported fields"
-		if !strings.Contains(s, why) {
-			t.Error("missing cause of panic")
-		}
-
-		const structName = "StructWithPrivateFields"
-		if !strings.Contains(s, structName) {
-			t.Error("missing struct name")
-		}
-
-		const unexportedFieldName = "anUnexportedField"
-		if !strings.Contains(s, unexportedFieldName) {
-			t.Error("missing field name")
-		}
-	}()
-
-	type StructWithPrivateFields struct {
-		Public            int
-		anUnexportedField int
-	}
-	clone.Of(StructWithPrivateFields{Public: 1, anUnexportedField: 2})
 }
 
 func TestOf_immutable_struct_types_are_shallow_copied(t *testing.T) {
@@ -589,6 +518,77 @@ func TestOf_mutable_struct_types_are_deep_copied(t *testing.T) {
 	if same(v.Pointer, c.Pointer) {
 		t.Error("expected a deep copy of the pointer")
 	}
+}
+
+func TestOf_panics_on_channels(t *testing.T) {
+	defer handleUnsupportedKind(t, reflect.Chan)
+	v := chan struct{}(nil)
+	clone.Of(v)
+}
+
+func TestOf_panics_on_functions(t *testing.T) {
+	defer handleUnsupportedKind(t, reflect.Func)
+	v := func() {}
+	clone.Of(v)
+}
+
+func TestOf_panics_on_unsafe_pointers(t *testing.T) {
+	defer handleUnsupportedKind(t, reflect.UnsafePointer)
+	v := unsafe.Pointer(nil)
+	clone.Of(v)
+}
+
+func handleUnsupportedKind(t *testing.T, kind reflect.Kind) {
+	r := recover()
+	if r == nil {
+		t.Fatal("missing expected panic")
+	}
+
+	s, ok := r.(string)
+	if !ok {
+		t.Fatal("expected a string panic value")
+	}
+	if !strings.Contains(s, "unsupported kind") {
+		t.Error("missing reason for failure")
+	}
+	if !strings.Contains(s, kind.String()) {
+		t.Error("missing kind")
+	}
+}
+
+func TestOf_panics_on_mutable_struct_with_unexported_fields(t *testing.T) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Fatal("missing expected panic")
+		}
+
+		s, ok := r.(string)
+		if !ok {
+			t.Fatal("expected a string panic value")
+		}
+
+		const why = "struct has unexported fields"
+		if !strings.Contains(s, why) {
+			t.Error("missing cause of panic")
+		}
+
+		const structName = "StructWithPrivateFields"
+		if !strings.Contains(s, structName) {
+			t.Error("missing struct name")
+		}
+
+		const unexportedFieldName = "anUnexportedField"
+		if !strings.Contains(s, unexportedFieldName) {
+			t.Error("missing field name")
+		}
+	}()
+
+	type StructWithPrivateFields struct {
+		Public            int
+		anUnexportedField int
+	}
+	clone.Of(StructWithPrivateFields{Public: 1, anUnexportedField: 2})
 }
 
 func testDeepEqual(t *testing.T, v any) {

@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// Derived types to ensure that cloning works for any type within the kind.
+// Derived types to ensure that cloning works for any type in the kind.
 type (
 	boolType       bool
 	intType        int
@@ -32,7 +32,7 @@ type (
 	stringType     string
 )
 
-func TestAssumeImmutable_example_cannot_be_nil(t *testing.T) {
+func TestAsImmutableType_example_cannot_be_nil(t *testing.T) {
 	defer func() {
 		r := recover()
 		if r == nil {
@@ -50,10 +50,10 @@ func TestAssumeImmutable_example_cannot_be_nil(t *testing.T) {
 		}
 	}()
 
-	clone.AsImmutable(nil)
+	clone.AsImmutableType(nil)
 }
 
-func TestAssumeImmutable_type_cannot_be_anything_but_a_struct(t *testing.T) {
+func TestAsImmutableType_example_must_be_of_a_struct_type(t *testing.T) {
 	for _, v := range []any{
 		false,
 		boolType(false),
@@ -114,18 +114,27 @@ func TestAssumeImmutable_type_cannot_be_anything_but_a_struct(t *testing.T) {
 					t.Error("missing cause of panic")
 				}
 			}()
-			clone.AsImmutable(v)
+			clone.AsImmutableType(v)
 		})
 	}
 }
 
-func TestOf_can_clone_simple_values(t *testing.T) {
+func TestAsImmutableType_is_idempotent(t *testing.T) {
+	// The below sequence of events does not panic.
+	clone.AsImmutableType(time.Time{})
+	clone.AsImmutableType(time.Time{})
+}
+
+func TestOf_can_clone_booleans(t *testing.T) {
+	testValues(t, []bool{false, true})
+	testValues(t, []boolType{false, true})
+}
+
+func TestOf_can_clone_numbers(t *testing.T) {
 	// Don't test with NaN because comparison is always false.
 	pInf := math.Inf(1)
 	nInf := math.Inf(-1)
 
-	testValues(t, []bool{false, true})
-	testValues(t, []boolType{false, true})
 	testValues(t, []int{-1, 0, 1})
 	testValues(t, []intType{-1, 0, 1})
 	testValues(t, []int8{-1, 0, 1})
@@ -449,7 +458,7 @@ func TestOf_can_clone_immutable_structs_with_unexported_fields(t *testing.T) {
 	}
 	v := ImmutableType{unexportedField: 42}
 
-	clone.AsImmutable(ImmutableType{})
+	clone.AsImmutableType(ImmutableType{})
 	c := clone.Of(v)
 	if v != c {
 		t.Errorf("expected %v, got %v", v, c)
@@ -527,11 +536,19 @@ func TestOf_cannot_clone_struct_with_private_fields(t *testing.T) {
 	clone.Of(StructWithPrivateFields{Public: 1, anUnexportedField: 2})
 }
 
-func TestOf_immutable_types_are_copied_by_value(t *testing.T) {
-	v := time.Now()
+func TestOf_immutable_struct_types_are_shallow_copied(t *testing.T) {
+	type Immutable struct {
+		Slice []int
+	}
+	clone.AsImmutableType(Immutable{})
+
+	v := Immutable{Slice: []int{0, 1, 2}}
 	c := clone.Of(v)
-	if c != v {
-		t.Errorf("expected %v, got %v", v, c)
+	if !reflect.DeepEqual(v, c) {
+		t.Errorf("expected deep equality")
+	}
+	if !same(v.Slice, c.Slice) {
+		t.Error("expected shallow copy")
 	}
 }
 

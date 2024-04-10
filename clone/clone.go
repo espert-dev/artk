@@ -7,13 +7,17 @@ import (
 	"time"
 )
 
-// AsImmutable declares the type of the example value as immutable.
+// AsImmutableType declares the type of the example value as immutable.
 //
-// Immutable types will not be deep copied.
-// Only struct types can be assumed to be immutable.
-// Cloning a value of an immutable type will never panic, even if it has
-// unexported fields.
-func AsImmutable(example any) {
+//   - Immutable types will be shallow-copied instead of deep-copied.
+//   - Only struct types can be declared to be immutable. Attempting to pass
+//     an example for a non-struct type will result in a panic.
+//   - Cloning a value of an immutable type will never panic, even if it has
+//     unexported fields.
+//   - This function is idempotent for multiple values of the same underlying
+//     type. In other words, it will not fail if a type has already been
+//     flagged as immutable.
+func AsImmutableType(example any) {
 	if example == nil {
 		panic("example cannot be nil")
 	}
@@ -35,7 +39,7 @@ func AsImmutable(example any) {
 //   - The value is or contains a function.
 //   - The value is or contains an unsafe pointer.
 //   - The value is or contains a struct with unexported fields, except if
-//     that struct that has been marked with AsImmutable.
+//     that struct that has been marked with AsImmutableType.
 func Of[T any](x T) T {
 	v := reflect.ValueOf(x)
 
@@ -275,7 +279,7 @@ func typeIdOf(t reflect.Type) typeId {
 
 // init adds immutable types defined by the standard library.
 func init() {
-	AsImmutable(time.Time{})
+	AsImmutableType(time.Time{})
 }
 
 // typeId represents the global key for a type.

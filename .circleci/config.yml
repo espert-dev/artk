@@ -1,0 +1,23 @@
+version: "2.1"
+orbs:
+    go: circleci/go@1.11.0
+jobs:
+    build:
+        executor:
+            name: go/default
+            tag: "1.22.2"
+        steps:
+            - checkout
+            - go/load-cache
+            - go/mod-download
+            - go/save-cache
+            - go/test:
+                  covermode: atomic
+                  failfast: true
+                  no_output_timeout: 1m
+                  race: true
+                  timeout: 1m
+workflows:
+    main:
+        jobs:
+            - build

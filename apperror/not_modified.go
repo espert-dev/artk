@@ -10,6 +10,10 @@ func (e notModifiedErr) NotModified() bool {
 	return true
 }
 
+func (e notModifiedErr) Kind() Kind {
+	return NotModifiedKind
+}
+
 // NotModified creates a new not modified error.
 // This is usually a sentinel error and does not indicate a problem.
 func NotModified(msg string) error {

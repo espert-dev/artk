@@ -7,6 +7,9 @@ import (
 
 func TestValidation(t *testing.T) {
 	err := apperror.Validation("test error")
+	if k := apperror.KindOf(err); k != apperror.ValidationKind {
+		t.Errorf("unexpected kind, got %v", k)
+	}
 	if !apperror.IsValidation(err) {
 		t.Errorf("expected forbidden error, got %v", err)
 	}

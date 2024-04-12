@@ -10,6 +10,10 @@ func (e timeoutErr) Timeout() bool {
 	return true
 }
 
+func (e timeoutErr) Kind() Kind {
+	return TimeoutKind
+}
+
 // Timeout creates a new timeout error.
 func Timeout(msg string) error {
 	return &timeoutErr{error: errors.New(msg)}

@@ -7,6 +7,9 @@ import (
 
 func TestForbidden(t *testing.T) {
 	err := apperror.Forbidden("test error")
+	if k := apperror.KindOf(err); k != apperror.ForbiddenKind {
+		t.Errorf("unexpected kind, got %v", k)
+	}
 	if !apperror.IsForbidden(err) {
 		t.Errorf("expected forbidden error, got %v", err)
 	}

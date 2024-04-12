@@ -8,6 +8,9 @@ import (
 
 func TestTimeout(t *testing.T) {
 	err := apperror.Timeout("test error")
+	if k := apperror.KindOf(err); k != apperror.TimeoutKind {
+		t.Errorf("unexpected kind, got %v", k)
+	}
 	if !apperror.IsTimeout(err) {
 		t.Errorf("expected timeout error, got %v", err)
 	}
@@ -17,7 +20,11 @@ func TestTimeout(t *testing.T) {
 }
 
 func TestContextDeadlineExceededIsTimeout(t *testing.T) {
-	if !apperror.IsTimeout(context.DeadlineExceeded) {
+	err := context.DeadlineExceeded
+	if k := apperror.KindOf(err); k != apperror.TimeoutKind {
+		t.Errorf("unexpected kind, got %v", k)
+	}
+	if !apperror.IsTimeout(err) {
 		t.Errorf("expected context.DeadlineExceeded to be a timeout")
 	}
 }

@@ -10,6 +10,10 @@ func (e conflictErr) Conflict() bool {
 	return true
 }
 
+func (e conflictErr) Kind() Kind {
+	return ConflictKind
+}
+
 // Conflict creates a new conflict error.
 func Conflict(msg string) error {
 	return &conflictErr{error: errors.New(msg)}

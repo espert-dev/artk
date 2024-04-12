@@ -7,6 +7,9 @@ import (
 
 func TestUnauthorized(t *testing.T) {
 	err := apperror.Unauthorized("test error")
+	if k := apperror.KindOf(err); k != apperror.UnauthorizedKind {
+		t.Errorf("unexpected kind, got %v", k)
+	}
 	if !apperror.IsUnauthorized(err) {
 		t.Errorf("expected unauthorized error, got %v", err)
 	}

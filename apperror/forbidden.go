@@ -10,6 +10,10 @@ func (e forbiddenErr) Forbidden() bool {
 	return true
 }
 
+func (e forbiddenErr) Kind() Kind {
+	return ForbiddenKind
+}
+
 // Forbidden creates a new forbidden error.
 func Forbidden(msg string) error {
 	return &forbiddenErr{error: errors.New(msg)}

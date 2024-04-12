@@ -7,6 +7,9 @@ import (
 
 func TestPreconditionFailed(t *testing.T) {
 	err := apperror.PreconditionFailed("test error")
+	if k := apperror.KindOf(err); k != apperror.PreconditionFailedKind {
+		t.Errorf("unexpected kind, got %v", k)
+	}
 	if !apperror.IsPreconditionFailed(err) {
 		t.Errorf("expected preconditionFailed error, got %v", err)
 	}

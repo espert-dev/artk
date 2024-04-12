@@ -10,6 +10,10 @@ func (e unauthorizedErr) Unauthorized() bool {
 	return true
 }
 
+func (e unauthorizedErr) Kind() Kind {
+	return UnauthorizedKind
+}
+
 // Unauthorized creates a new unauthorized error.
 func Unauthorized(msg string) error {
 	return &unauthorizedErr{error: errors.New(msg)}

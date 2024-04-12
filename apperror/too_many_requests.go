@@ -10,6 +10,10 @@ func (e tooManyRequestsErr) TooManyRequests() bool {
 	return true
 }
 
+func (e tooManyRequestsErr) Kind() Kind {
+	return TooManyRequestsKind
+}
+
 // TooManyRequests creates a new too many requests error.
 func TooManyRequests(msg string) error {
 	return &tooManyRequestsErr{error: errors.New(msg)}

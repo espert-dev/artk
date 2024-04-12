@@ -10,6 +10,10 @@ func (e validationErr) Validation() bool {
 	return true
 }
 
+func (e validationErr) Kind() Kind {
+	return ValidationKind
+}
+
 // Validation creates a new validation error.
 func Validation(msg string) error {
 	return &validationErr{error: errors.New(msg)}

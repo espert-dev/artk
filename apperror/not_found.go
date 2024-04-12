@@ -12,6 +12,10 @@ func (e notFoundErr) NotFound() bool {
 	return true
 }
 
+func (e notFoundErr) Kind() Kind {
+	return NotFoundKind
+}
+
 // NotFound creates a new not found error.
 func NotFound(msg string) error {
 	return &notFoundErr{error: errors.New(msg)}

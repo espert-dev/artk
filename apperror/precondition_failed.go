@@ -10,6 +10,10 @@ func (e preconditionFailedErr) PreconditionFailed() bool {
 	return true
 }
 
+func (e preconditionFailedErr) Kind() Kind {
+	return PreconditionFailedKind
+}
+
 // PreconditionFailed creates a new precondition failed error.
 func PreconditionFailed(msg string) error {
 	return &preconditionFailedErr{error: errors.New(msg)}

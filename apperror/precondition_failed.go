@@ -10,12 +10,12 @@ func (e preconditionFailedErr) PreconditionFailed() bool {
 	return true
 }
 
-// PreconditionFailed creates a new preconditionFailed error.
+// PreconditionFailed creates a new precondition failed error.
 func PreconditionFailed(msg string) error {
 	return &preconditionFailedErr{error: errors.New(msg)}
 }
 
-// IsPreconditionFailed checks if the error is a preconditionFailed error.
+// IsPreconditionFailed checks if the error is a precondition failed error.
 func IsPreconditionFailed(err error) bool {
 	var target interface {
 		PreconditionFailed() bool

@@ -6,7 +6,7 @@ import (
 )
 
 func TestNotModified(t *testing.T) {
-	err := apperror.NotModified("test error")
+	err := apperror.NotModified("%v error", "test")
 	if k := apperror.KindOf(err); k != apperror.NotModifiedKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}

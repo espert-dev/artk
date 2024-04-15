@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type tooManyRequestsErr struct {
 	error
@@ -15,8 +18,8 @@ func (e tooManyRequestsErr) Kind() Kind {
 }
 
 // TooManyRequests creates a new too many requests error.
-func TooManyRequests(msg string) error {
-	return &tooManyRequestsErr{error: errors.New(msg)}
+func TooManyRequests(msg string, a ...any) error {
+	return &tooManyRequestsErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsTooManyRequests checks if the error is a too many requests error.

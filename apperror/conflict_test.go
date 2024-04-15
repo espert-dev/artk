@@ -6,7 +6,7 @@ import (
 )
 
 func TestConflict(t *testing.T) {
-	err := apperror.Conflict("test error")
+	err := apperror.Conflict("%v error", "test")
 	if k := apperror.KindOf(err); k != apperror.ConflictKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}

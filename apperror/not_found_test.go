@@ -6,7 +6,7 @@ import (
 )
 
 func TestNotFound(t *testing.T) {
-	err := apperror.NotFound("test error")
+	err := apperror.NotFound("%v error", "test")
 	if k := apperror.KindOf(err); k != apperror.NotFoundKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}

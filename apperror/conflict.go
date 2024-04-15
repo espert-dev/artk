@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type conflictErr struct {
 	error
@@ -15,8 +18,8 @@ func (e conflictErr) Kind() Kind {
 }
 
 // Conflict creates a new conflict error.
-func Conflict(msg string) error {
-	return &conflictErr{error: errors.New(msg)}
+func Conflict(msg string, a ...any) error {
+	return &conflictErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsConflict checks if the error is a conflict error.

@@ -2,6 +2,7 @@ package apperror
 
 import (
 	"errors"
+	"fmt"
 )
 
 type notFoundErr struct {
@@ -17,8 +18,8 @@ func (e notFoundErr) Kind() Kind {
 }
 
 // NotFound creates a new not found error.
-func NotFound(msg string) error {
-	return &notFoundErr{error: errors.New(msg)}
+func NotFound(msg string, a ...any) error {
+	return &notFoundErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsNotFound checks if the error is a not found error.

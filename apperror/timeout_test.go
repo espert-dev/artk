@@ -7,7 +7,7 @@ import (
 )
 
 func TestTimeout(t *testing.T) {
-	err := apperror.Timeout("test error")
+	err := apperror.Timeout("%v error", "test")
 	if k := apperror.KindOf(err); k != apperror.TimeoutKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 func TestTooManyRequests(t *testing.T) {
-	err := apperror.TooManyRequests("test error")
+	err := apperror.TooManyRequests("%v error", "test")
 	if k := apperror.KindOf(err); k != apperror.TooManyRequestsKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}

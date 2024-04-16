@@ -1,7 +1,7 @@
 package apperror_test
 
 import (
-	"github.com/jespert/artk/apperror"
+	"artk.dev/apperror"
 	"testing"
 )
 

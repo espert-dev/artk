@@ -1,4 +1,4 @@
-module github.com/jespert/artk
+module artk.dev
 
 go 1.21.0
 

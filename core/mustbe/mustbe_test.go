@@ -1,8 +1,8 @@
 package mustbe_test
 
 import (
+	"artk.dev/core/mustbe"
 	"fmt"
-	"github.com/jespert/artk/mustbe"
 	"testing"
 )
 

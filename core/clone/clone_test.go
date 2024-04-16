@@ -1,8 +1,8 @@
 package clone_test
 
 import (
+	"artk.dev/core/clone"
 	"fmt"
-	"github.com/jespert/artk/clone"
 	"math"
 	"reflect"
 	"strings"

@@ -1,2 +1,5 @@
+# CI generates a combined go.sum to cache dependencies.
+/go.sum
+
 # Test artifacts.
 junit.xml

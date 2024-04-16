@@ -1,7 +1,7 @@
 package testbarrier_test
 
 import (
-	"github.com/jespert/artk/testbarrier"
+	"artk.dev/core/testbarrier"
 	"testing"
 	"time"
 )

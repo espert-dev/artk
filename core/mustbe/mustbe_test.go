@@ -1,7 +1,7 @@
 package mustbe_test
 
 import (
-	"artk.dev/mustbe"
+	"artk.dev/core/mustbe"
 	"fmt"
 	"testing"
 )

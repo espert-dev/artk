@@ -1,16 +1,16 @@
 package apperror_test
 
 import (
-	"artk.dev/apperror"
+	"artk.dev/core/apperror"
 	"testing"
 )
 
-func TestValidation(t *testing.T) {
-	err := apperror.Validation("%v error", "test")
-	if k := apperror.KindOf(err); k != apperror.ValidationKind {
+func TestNotFound(t *testing.T) {
+	err := apperror.NotFound("%v error", "test")
+	if k := apperror.KindOf(err); k != apperror.NotFoundKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}
-	if !apperror.IsValidation(err) {
+	if !apperror.IsNotFound(err) {
 		t.Errorf("expected forbidden error, got %v", err)
 	}
 	if msg := err.Error(); msg != "test error" {

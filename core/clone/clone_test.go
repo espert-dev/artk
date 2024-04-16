@@ -1,7 +1,7 @@
 package clone_test
 
 import (
-	"artk.dev/clone"
+	"artk.dev/core/clone"
 	"fmt"
 	"math"
 	"reflect"

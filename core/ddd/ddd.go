@@ -4,7 +4,9 @@
 // behaviours, while others are purely informative.
 package ddd
 
-import "artk.dev/typetraits"
+import (
+	"artk.dev/core/typetraits"
+)
 
 // Entity is embedded into structs that represent DDD entities.
 type Entity struct {

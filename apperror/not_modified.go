@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type notModifiedErr struct {
 	error
@@ -16,8 +19,8 @@ func (e notModifiedErr) Kind() Kind {
 
 // NotModified creates a new not modified error.
 // This is usually a sentinel error and does not indicate a problem.
-func NotModified(msg string) error {
-	return &notModifiedErr{error: errors.New(msg)}
+func NotModified(msg string, a ...any) error {
+	return &notModifiedErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsNotModified checks if the error is a not modified error.

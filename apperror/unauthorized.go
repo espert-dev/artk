@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type unauthorizedErr struct {
 	error
@@ -15,8 +18,8 @@ func (e unauthorizedErr) Kind() Kind {
 }
 
 // Unauthorized creates a new unauthorized error.
-func Unauthorized(msg string) error {
-	return &unauthorizedErr{error: errors.New(msg)}
+func Unauthorized(msg string, a ...any) error {
+	return &unauthorizedErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsUnauthorized checks if the error is a unauthorized error.

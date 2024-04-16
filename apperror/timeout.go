@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type timeoutErr struct {
 	error
@@ -15,8 +18,8 @@ func (e timeoutErr) Kind() Kind {
 }
 
 // Timeout creates a new timeout error.
-func Timeout(msg string) error {
-	return &timeoutErr{error: errors.New(msg)}
+func Timeout(msg string, a ...any) error {
+	return &timeoutErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsTimeout checks if the error is a timeout error.

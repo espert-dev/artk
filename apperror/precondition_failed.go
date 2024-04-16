@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type preconditionFailedErr struct {
 	error
@@ -15,8 +18,8 @@ func (e preconditionFailedErr) Kind() Kind {
 }
 
 // PreconditionFailed creates a new precondition failed error.
-func PreconditionFailed(msg string) error {
-	return &preconditionFailedErr{error: errors.New(msg)}
+func PreconditionFailed(msg string, a ...any) error {
+	return &preconditionFailedErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsPreconditionFailed checks if the error is a precondition failed error.

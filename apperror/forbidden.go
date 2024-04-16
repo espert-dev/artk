@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type forbiddenErr struct {
 	error
@@ -15,8 +18,8 @@ func (e forbiddenErr) Kind() Kind {
 }
 
 // Forbidden creates a new forbidden error.
-func Forbidden(msg string) error {
-	return &forbiddenErr{error: errors.New(msg)}
+func Forbidden(msg string, a ...any) error {
+	return &forbiddenErr{error: fmt.Errorf(msg, a...)}
 }
 
 // IsForbidden checks if the error is a forbidden error.

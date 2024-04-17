@@ -38,7 +38,6 @@ linters:
     - mirror
     - misspell
     - musttag
-    - nilnil
     - noctx
     - nosprintfhostport
     - perfsprint
@@ -62,7 +61,6 @@ linters:
     - unconvert
     - usestdlibvars
     - wastedassign
-    - wrapcheck
     - unused
 
 linters-settings:

@@ -62,7 +62,6 @@ linters:
     - unconvert
     - usestdlibvars
     - wastedassign
-    - wrapcheck
     - unused
 
 linters-settings:

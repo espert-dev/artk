@@ -18,7 +18,7 @@ jobs:
           name: build and test
           command: ./ok.sh
       - store_test_results:
-          path: junit.xml
+          path: .test
 workflows:
   main:
     jobs:

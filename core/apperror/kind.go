@@ -1,9 +1,7 @@
 //go:generate go run golang.org/x/tools/cmd/stringer@latest -type Kind .
 package apperror
 
-import (
-	"errors"
-)
+import "errors"
 
 // Kind indicates the category of error.
 // There is one for each Is* function in this package.
@@ -30,40 +28,54 @@ const (
 
 // KindOf allows potentially faster checking of multiple error types.
 func KindOf(err error) Kind {
+	kind, ok := fastKindOf(err)
+	if ok {
+		return kind
+	}
+
+	return slowKindOf(err)
+}
+
+// fastKindOf quickly computes the Kind of an error created by artk or the
+// Go standard library, but it is not compatible with errors created by other
+// libraries.
+func fastKindOf(err error) (Kind, bool) {
 	// Fast detection, where available.
 	var kinder interface {
 		Kind() Kind
 	}
 	if errors.As(err, &kinder) {
-		return kinder.Kind()
+		return kinder.Kind(), true
 	}
 
-	// The Go standard library uses Timeout, so put that one first.
+	// The Go standard library uses Timeout, so check it first.
 	if IsTimeout(err) {
-		return TimeoutKind
+		return TimeoutKind, true
 	}
 
-	// Slow detection. Handle the case where the errors have not been
-	// defined with this library. There is a fair chance that by the point
-	// we get here we do not have a semantic error at all, in which case
-	// the processing speed might matter a bit less.
-	if IsNotModified(err) {
+	return UnknownKind, false
+}
+
+func slowKindOf(err error) Kind {
+	// Check types other than Timeout, which is checked in fastKindOf.
+	switch {
+	case IsNotModified(err):
 		return NotModifiedKind
-	} else if IsValidation(err) {
+	case IsValidation(err):
 		return ValidationKind
-	} else if IsUnauthorized(err) {
+	case IsUnauthorized(err):
 		return UnauthorizedKind
-	} else if IsForbidden(err) {
+	case IsForbidden(err):
 		return ForbiddenKind
-	} else if IsNotFound(err) {
+	case IsNotFound(err):
 		return NotFoundKind
-	} else if IsConflict(err) {
+	case IsConflict(err):
 		return ConflictKind
-	} else if IsPreconditionFailed(err) {
+	case IsPreconditionFailed(err):
 		return PreconditionFailedKind
-	} else if IsTooManyRequests(err) {
+	case IsTooManyRequests(err):
 		return TooManyRequestsKind
+	default:
+		return UnknownKind
 	}
-
-	return UnknownKind
 }

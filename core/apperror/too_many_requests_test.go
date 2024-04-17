@@ -6,14 +6,14 @@ import (
 )
 
 func TestTooManyRequests(t *testing.T) {
-	err := apperror.TooManyRequests("%v error", "test")
+	err := apperror.TooManyRequests("%v error", "too many requests")
 	if k := apperror.KindOf(err); k != apperror.TooManyRequestsKind {
 		t.Errorf("unexpected kind, got %v", k)
 	}
 	if !apperror.IsTooManyRequests(err) {
 		t.Errorf("expected tooManyRequests error, got %v", err)
 	}
-	if msg := err.Error(); msg != "test error" {
+	if msg := err.Error(); msg != "too many requests error" {
 		t.Errorf("unexpected error message: %v", msg)
 	}
 }

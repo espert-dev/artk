@@ -120,6 +120,12 @@ func TestAsImmutableType_example_must_be_of_a_struct_type(t *testing.T) {
 }
 
 func TestAsImmutableType_is_idempotent(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			t.Error("Unexpected panic:", r)
+		}
+	}()
+
 	// The below sequence of events does not panic.
 	clone.AsImmutableType(time.Time{})
 	clone.AsImmutableType(time.Time{})
@@ -354,6 +360,8 @@ func TestOf_supports_acyclic_slices(t *testing.T) {
 }
 
 func testSlice[T comparable](t *testing.T, slice []T) {
+	t.Helper()
+
 	var name string
 	if slice == nil {
 		name = fmt.Sprintf("%T(nil)", slice)
@@ -361,7 +369,6 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 		name = fmt.Sprintf("%T%v", slice, slice)
 	}
 
-	t.Helper()
 	t.Run(name, func(t *testing.T) {
 		c := clone.Of(slice)
 
@@ -539,6 +546,8 @@ func TestOf_panics_on_unsafe_pointers(t *testing.T) {
 }
 
 func handleUnsupportedKind(t *testing.T, kind reflect.Kind) {
+	t.Helper()
+
 	r := recover()
 	if r == nil {
 		t.Fatal("missing expected panic")

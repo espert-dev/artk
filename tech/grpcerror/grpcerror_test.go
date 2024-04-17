@@ -1,4 +1,4 @@
-package grpcerror
+package grpcerror_test
 
 import (
 	"github.com/stretchr/testify/assert"

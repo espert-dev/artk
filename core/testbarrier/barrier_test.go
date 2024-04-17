@@ -13,20 +13,31 @@ func TestBarrier_Lift(t *testing.T) {
 }
 
 func TestBarrier_Wait_expires(t *testing.T) {
-	fakeT := &testingT{
-		onHelper:  make(chan struct{}),
-		onError:   make(chan struct{}),
-		onFailNow: make(chan struct{}),
-	}
-
+	success := make(chan struct{})
 	go func() {
-		barrier := testbarrier.New()
-		barrier.Wait(fakeT, time.Nanosecond)
+		fakeT := &testingT{
+			onHelper:  make(chan struct{}),
+			onError:   make(chan struct{}),
+			onFailNow: make(chan struct{}),
+		}
+
+		go func() {
+			barrier := testbarrier.New()
+			barrier.Wait(fakeT, time.Nanosecond)
+		}()
+
+		<-fakeT.onHelper
+		<-fakeT.onError
+		<-fakeT.onFailNow
+		success <- struct{}{}
 	}()
 
-	<-fakeT.onHelper
-	<-fakeT.onError
-	<-fakeT.onFailNow
+	select {
+	case <-success:
+		// Hurrah!
+	case <-time.NewTicker(5 * time.Second).C:
+		t.Errorf("property was not satisfied within timeout")
+	}
 }
 
 type testingT struct {

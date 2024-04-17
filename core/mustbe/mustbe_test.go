@@ -2,7 +2,7 @@ package mustbe_test
 
 import (
 	"artk.dev/core/mustbe"
-	"fmt"
+	"errors"
 	"testing"
 )
 
@@ -44,7 +44,7 @@ func TestNoError(t *testing.T) {
 			}
 		}()
 
-		mustbe.NoError(fmt.Errorf("test error"))
+		mustbe.NoError(errors.New("test error"))
 	})
 }
 

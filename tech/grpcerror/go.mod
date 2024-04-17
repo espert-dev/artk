@@ -1,6 +1,6 @@
 module artk.dev/tech/grpcerror
 
-go 1.22.2
+go 1.22.0
 
 require (
 	artk.dev/core v0.0.0-00010101000000-000000000000

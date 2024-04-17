@@ -1,0 +1,93 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errcheck
+    - execinquery
+    - exportloopref
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gofmt
+    - gomnd
+    - gomoddirectives
+    - gosec
+    - gosimple
+    - gosmopolitan
+    - govet
+    - lll
+    - importas
+    - ineffassign
+    - intrange
+    - makezero
+    - mirror
+    - misspell
+    - musttag
+    - nilnil
+    - noctx
+    - nosprintfhostport
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - tagliatelle
+    - tenv
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - unconvert
+    - usestdlibvars
+    - wastedassign
+    - wrapcheck
+    - unused
+
+linters-settings:
+  lll:
+    line-length: 80
+    tab-width: 8
+  gocyclo:
+    min-complexity: 10
+  godot:
+    scope: all
+    period: true
+  gomoddirectives:
+    replace-local: true
+  importas:
+    no-extra-aliases: true
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: camel
+        yaml: camel
+        xml: camel
+        toml: camel
+        bson: camel
+        avro: snake
+        mapstructure: kebab
+        env: upperSnake
+        envconfig: upperSnake

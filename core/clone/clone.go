@@ -27,7 +27,7 @@ func AsImmutableType(example any) {
 		panic("only structs can be declared immutable")
 	}
 
-	key := typeIdOf(t)
+	key := typeIDOf(t)
 	immutableStructTypes[key] = struct{}{}
 }
 
@@ -112,7 +112,7 @@ func (k cloner) cloneArray(v reflect.Value) reflect.Value {
 
 	// Recursively copy contents.
 	// Avoid reflect.Copy, which would result in a shallow copy.
-	for i := 0; i < l; i++ {
+	for i := range l {
 		x := v.Index(i)
 		y := k.cloneAny(x)
 		c.Index(i).Set(y)
@@ -215,7 +215,7 @@ func (k cloner) cloneSlice(v reflect.Value) reflect.Value {
 
 	// Recursively copy contents.
 	// Avoid reflect.Copy, which would result in a shallow copy.
-	for i := 0; i < l; i++ {
+	for i := range l {
 		x := v.Index(i)
 		y := k.cloneAny(x)
 		c.Index(i).Set(y)
@@ -229,7 +229,7 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 
 	// Handle immutable types such as time.Time, which contain unexported
 	// fields but can be shared without concern.
-	tid := typeIdOf(t)
+	tid := typeIDOf(t)
 	if _, ok := immutableStructTypes[tid]; ok {
 		return v
 	}
@@ -248,7 +248,7 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	// The package reflect will panic on attempts to set an
 	// unexported value. We preempt this situation to provide
 	// a friendlier error message.
-	for i := 0; i < n; i++ {
+	for i := range n {
 		f := t.Field(i)
 		if !f.IsExported() {
 			panic(fmt.Sprintf(
@@ -260,7 +260,7 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	}
 
 	// Recursively clone fields.
-	for i := 0; i < n; i++ {
+	for i := range n {
 		x := v.Field(i)
 		y := k.cloneAny(x)
 		c.Field(i).Set(y)
@@ -269,9 +269,9 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 	return c
 }
 
-// typeIdOf returns a global key for a type.
-func typeIdOf(t reflect.Type) typeId {
-	return typeId{
+// typeIDOf returns a global key for a type.
+func typeIDOf(t reflect.Type) typeID {
+	return typeID{
 		PkgPath: t.PkgPath(),
 		Name:    t.Name(),
 	}
@@ -282,11 +282,11 @@ func init() {
 	AsImmutableType(time.Time{})
 }
 
-// typeId represents the global key for a type.
-type typeId struct {
+// typeID represents the global key for a type.
+type typeID struct {
 	PkgPath string
 	Name    string
 }
 
 // immutableStructTypes contains types that can be copied as values.
-var immutableStructTypes = make(map[typeId]struct{})
+var immutableStructTypes = make(map[typeID]struct{})

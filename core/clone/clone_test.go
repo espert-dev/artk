@@ -2,6 +2,7 @@ package clone_test
 
 import (
 	"artk.dev/core/clone"
+	"artk.dev/core/typetraits"
 	"fmt"
 	"math"
 	"reflect"
@@ -468,6 +469,20 @@ func TestOf_supports_immutable_structs_with_unexported_fields(t *testing.T) {
 	clone.AsImmutableType(ImmutableType{})
 	c := clone.Of(v)
 	if v != c {
+		t.Errorf("expected %v, got %v", v, c)
+	}
+}
+
+func TestOf_supports_structs_with_unexported_zero_size_traits(t *testing.T) {
+	// Unexported fields would panic if the type wasn't assumed immutable.
+	type Type struct {
+		_     typetraits.NoCompare // Zero-sized unexported field.
+		Value int
+	}
+	v := Type{Value: 42}
+
+	c := clone.Of(v)
+	if c.Value != 42 {
 		t.Errorf("expected %v, got %v", v, c)
 	}
 }

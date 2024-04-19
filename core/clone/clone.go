@@ -247,9 +247,17 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 
 	// The package reflect will panic on attempts to set an
 	// unexported value. We preempt this situation to provide
-	// a friendlier error message.
+	// a more friendly error message.
 	for i := range n {
 		f := t.Field(i)
+
+		// Support zero-sized fields, even if unexported.
+		// This is necessary to support type traits such as NoCompare.
+		if f.Type.Size() == 0 {
+			continue
+		}
+
+		// Unexported fields cannot be copied with the reflect package.
 		if !f.IsExported() {
 			panic(fmt.Sprintf(
 				"struct has unexported fields: %v.%v",
@@ -257,10 +265,8 @@ func (k cloner) cloneStruct(v reflect.Value) reflect.Value {
 				f.Name,
 			))
 		}
-	}
 
-	// Recursively clone fields.
-	for i := range n {
+		// Recursively clone fields.
 		x := v.Field(i)
 		y := k.cloneAny(x)
 		c.Field(i).Set(y)

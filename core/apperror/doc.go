@@ -1,2 +1,2 @@
-// Package apperror provides errors with common semantic connotations.
+// Package apperror provides a way to create and match errors with semantics.
 package apperror

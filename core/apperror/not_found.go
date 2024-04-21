@@ -5,24 +5,34 @@ import (
 	"fmt"
 )
 
-type notFoundErr struct {
+type notFoundError struct {
 	error
 }
 
-func (e notFoundErr) NotFound() bool {
+func (e notFoundError) NotFound() bool {
 	return true
 }
 
-func (e notFoundErr) Kind() Kind {
-	return NotFoundKind
+func (e notFoundError) Kind() Kind {
+	return NotFoundError
 }
 
 // NotFound creates a new not found error.
 func NotFound(msg string, a ...any) error {
-	return &notFoundErr{error: fmt.Errorf(msg, a...)}
+	return &notFoundError{error: fmt.Errorf(msg, a...)}
 }
 
-// IsNotFound checks if the error is a not found error.
+// AsNotFound wraps an existing error as a not found error.
+// It returns nil for nil errors.
+func AsNotFound(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &notFoundError{error: err}
+}
+
+// IsNotFound matches not found errors.
 func IsNotFound(err error) bool {
 	var target interface {
 		NotFound() bool

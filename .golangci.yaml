@@ -72,6 +72,8 @@ linters-settings:
   godot:
     scope: all
     period: true
+    exclude:
+      - "Output:.*$"
   gomoddirectives:
     replace-local: true
   importas:

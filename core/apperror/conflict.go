@@ -5,24 +5,34 @@ import (
 	"fmt"
 )
 
-type conflictErr struct {
+type conflictError struct {
 	error
 }
 
-func (e conflictErr) Conflict() bool {
+func (e conflictError) Conflict() bool {
 	return true
 }
 
-func (e conflictErr) Kind() Kind {
-	return ConflictKind
+func (e conflictError) Kind() Kind {
+	return ConflictError
 }
 
 // Conflict creates a new conflict error.
 func Conflict(msg string, a ...any) error {
-	return &conflictErr{error: fmt.Errorf(msg, a...)}
+	return &conflictError{error: fmt.Errorf(msg, a...)}
 }
 
-// IsConflict checks if the error is a conflict error.
+// AsConflict wraps an existing error as a conflict error.
+// It returns nil for nil errors.
+func AsConflict(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &conflictError{error: err}
+}
+
+// IsConflict matches conflict errors.
 func IsConflict(err error) bool {
 	var target interface {
 		Conflict() bool

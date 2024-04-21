@@ -1,81 +1,71 @@
 //go:generate go run golang.org/x/tools/cmd/stringer@latest -type Kind .
+
 package apperror
 
-import "errors"
-
-// Kind indicates the category of error.
-// There is one for each Is* function in this package.
-type Kind int
-
-// The values below don't really matter, but they have been chosen to match
-// the HTTP codes because a lot of developers are familiar with them.
-//
-// The choice for TimeoutKind is a bit tricky, but I want to be able to
-// distinguish between a timeout and other kinds of server errors, which would
-// be hard if we went with 500.
-const (
-	UnknownKind            Kind = 0
-	NotModifiedKind        Kind = 304
-	ValidationKind         Kind = 400
-	UnauthorizedKind       Kind = 401
-	ForbiddenKind          Kind = 403
-	NotFoundKind           Kind = 404
-	ConflictKind           Kind = 409
-	PreconditionFailedKind Kind = 412
-	TooManyRequestsKind    Kind = 429
-	TimeoutKind            Kind = 504
+import (
+	"errors"
 )
 
-// KindOf allows potentially faster checking of multiple error types.
-func KindOf(err error) Kind {
-	kind, ok := fastKindOf(err)
-	if ok {
-		return kind
-	}
+// Kind implies semantic connotations about an error. In most cases, knowing
+// the kind of error is all that user code needs for correct handling,
+// and there is no need to consider the exact error type or message.
+//
+// The numerical values of these constants are not guaranteed to be stable
+// and therefore must not be relied on.
+type Kind int
 
-	return slowKindOf(err)
+const (
+	OK Kind = iota
+	UnknownError
+	ValidationError
+	UnauthorizedError
+	ForbiddenError
+	NotFoundError
+	ConflictError
+	PreconditionFailedError
+	TooManyRequestsError
+	TimeoutError
+)
+
+// KindValues returns the set of known values of Kind.
+func KindValues() []Kind {
+	return []Kind{
+		OK,
+		UnknownError,
+		ValidationError,
+		UnauthorizedError,
+		ForbiddenError,
+		NotFoundError,
+		ConflictError,
+		PreconditionFailedError,
+		TooManyRequestsError,
+		TimeoutError,
+	}
 }
 
-// fastKindOf quickly computes the Kind of an error created by artk or the
-// Go standard library, but it is not compatible with errors created by other
-// libraries.
-func fastKindOf(err error) (Kind, bool) {
+// KindOf returns the Kind of an error.
+// If the error is nil, it will return OK.
+//
+// This is usually faster than calling multiple error kind matchers.
+func KindOf(err error) Kind {
+	// While not essential, supporting OK allows user code to handle
+	// success and multiple error kinds with a single switch statement.
+	if err == nil {
+		return OK
+	}
+
 	// Fast detection, where available.
 	var kinder interface {
 		Kind() Kind
 	}
 	if errors.As(err, &kinder) {
-		return kinder.Kind(), true
+		return kinder.Kind()
 	}
 
 	// The Go standard library uses Timeout, so check it first.
 	if IsTimeout(err) {
-		return TimeoutKind, true
+		return TimeoutError
 	}
 
-	return UnknownKind, false
-}
-
-func slowKindOf(err error) Kind {
-	// Check types other than Timeout, which is checked in fastKindOf.
-	switch {
-	case IsNotModified(err):
-		return NotModifiedKind
-	case IsValidation(err):
-		return ValidationKind
-	case IsUnauthorized(err):
-		return UnauthorizedKind
-	case IsForbidden(err):
-		return ForbiddenKind
-	case IsNotFound(err):
-		return NotFoundKind
-	case IsConflict(err):
-		return ConflictKind
-	case IsPreconditionFailed(err):
-		return PreconditionFailedKind
-	case IsTooManyRequests(err):
-		return TooManyRequestsKind
-	default:
-		return UnknownKind
-	}
+	return UnknownError
 }

@@ -5,24 +5,34 @@ import (
 	"fmt"
 )
 
-type preconditionFailedErr struct {
+type preconditionFailedError struct {
 	error
 }
 
-func (e preconditionFailedErr) PreconditionFailed() bool {
+func (e preconditionFailedError) PreconditionFailed() bool {
 	return true
 }
 
-func (e preconditionFailedErr) Kind() Kind {
-	return PreconditionFailedKind
+func (e preconditionFailedError) Kind() Kind {
+	return PreconditionFailedError
 }
 
 // PreconditionFailed creates a new precondition failed error.
 func PreconditionFailed(msg string, a ...any) error {
-	return &preconditionFailedErr{error: fmt.Errorf(msg, a...)}
+	return &preconditionFailedError{error: fmt.Errorf(msg, a...)}
 }
 
-// IsPreconditionFailed checks if the error is a precondition failed error.
+// AsPreconditionFailed wraps an existing error as a precondition failed error.
+// It returns nil for nil errors.
+func AsPreconditionFailed(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &preconditionFailedError{error: err}
+}
+
+// IsPreconditionFailed matches precondition failed errors.
 func IsPreconditionFailed(err error) bool {
 	var target interface {
 		PreconditionFailed() bool

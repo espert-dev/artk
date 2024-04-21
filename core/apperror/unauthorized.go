@@ -5,24 +5,34 @@ import (
 	"fmt"
 )
 
-type unauthorizedErr struct {
+type unauthorizedError struct {
 	error
 }
 
-func (e unauthorizedErr) Unauthorized() bool {
+func (e unauthorizedError) Unauthorized() bool {
 	return true
 }
 
-func (e unauthorizedErr) Kind() Kind {
-	return UnauthorizedKind
+func (e unauthorizedError) Kind() Kind {
+	return UnauthorizedError
 }
 
 // Unauthorized creates a new unauthorized error.
 func Unauthorized(msg string, a ...any) error {
-	return &unauthorizedErr{error: fmt.Errorf(msg, a...)}
+	return &unauthorizedError{error: fmt.Errorf(msg, a...)}
 }
 
-// IsUnauthorized checks if the error is a unauthorized error.
+// AsUnauthorized wraps an existing error as a unauthorized error.
+// It returns nil for nil errors.
+func AsUnauthorized(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &unauthorizedError{error: err}
+}
+
+// IsUnauthorized matches unauthorized errors.
 func IsUnauthorized(err error) bool {
 	var target interface {
 		Unauthorized() bool

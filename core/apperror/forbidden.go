@@ -5,24 +5,34 @@ import (
 	"fmt"
 )
 
-type forbiddenErr struct {
+type forbiddenError struct {
 	error
 }
 
-func (e forbiddenErr) Forbidden() bool {
+func (e forbiddenError) Forbidden() bool {
 	return true
 }
 
-func (e forbiddenErr) Kind() Kind {
-	return ForbiddenKind
+func (e forbiddenError) Kind() Kind {
+	return ForbiddenError
 }
 
 // Forbidden creates a new forbidden error.
 func Forbidden(msg string, a ...any) error {
-	return &forbiddenErr{error: fmt.Errorf(msg, a...)}
+	return &forbiddenError{error: fmt.Errorf(msg, a...)}
 }
 
-// IsForbidden checks if the error is a forbidden error.
+// AsForbidden wraps an existing error as a forbidden error.
+// It returns nil for nil errors.
+func AsForbidden(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &forbiddenError{error: err}
+}
+
+// IsForbidden matches forbidden errors.
 func IsForbidden(err error) bool {
 	var target interface {
 		Forbidden() bool

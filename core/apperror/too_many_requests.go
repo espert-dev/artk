@@ -5,24 +5,34 @@ import (
 	"fmt"
 )
 
-type tooManyRequestsErr struct {
+type tooManyRequestsError struct {
 	error
 }
 
-func (e tooManyRequestsErr) TooManyRequests() bool {
+func (e tooManyRequestsError) TooManyRequests() bool {
 	return true
 }
 
-func (e tooManyRequestsErr) Kind() Kind {
-	return TooManyRequestsKind
+func (e tooManyRequestsError) Kind() Kind {
+	return TooManyRequestsError
 }
 
 // TooManyRequests creates a new too many requests error.
 func TooManyRequests(msg string, a ...any) error {
-	return &tooManyRequestsErr{error: fmt.Errorf(msg, a...)}
+	return &tooManyRequestsError{error: fmt.Errorf(msg, a...)}
 }
 
-// IsTooManyRequests checks if the error is a too many requests error.
+// AsTooManyRequests wraps an existing error as a too many requests error.
+// It returns nil for nil errors.
+func AsTooManyRequests(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &tooManyRequestsError{error: err}
+}
+
+// IsTooManyRequests matches too many requests errors.
 func IsTooManyRequests(err error) bool {
 	var target interface {
 		TooManyRequests() bool

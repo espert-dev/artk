@@ -1,8 +1,8 @@
 package httperror_test
 
 import (
-	"artk.dev/core/apperror"
-	"artk.dev/core/httperror"
+	"artk.dev/apperror"
+	"artk.dev/httperror"
 	"net/http"
 	"strconv"
 	"testing"

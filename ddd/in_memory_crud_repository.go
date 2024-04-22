@@ -1,8 +1,8 @@
 package ddd
 
 import (
-	"artk.dev/core/apperror"
-	"artk.dev/core/clone"
+	"artk.dev/apperror"
+	"artk.dev/clone"
 	"context"
 	"sync"
 )

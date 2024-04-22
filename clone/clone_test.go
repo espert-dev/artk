@@ -1,8 +1,8 @@
 package clone_test
 
 import (
-	"artk.dev/core/clone"
-	"artk.dev/core/typetraits"
+	"artk.dev/clone"
+	"artk.dev/typetraits"
 	"fmt"
 	"math"
 	"reflect"

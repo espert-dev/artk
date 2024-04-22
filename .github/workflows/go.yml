@@ -27,7 +27,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: |
-            core/go.sum
+            go.sum
             tech/grpcerror/go.sum
 
       - name: golangci-lint

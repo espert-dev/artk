@@ -1,7 +1,7 @@
 package grpcerror_test
 
 import (
-	"artk.dev/core/apperror"
+	"artk.dev/apperror"
 	"artk.dev/tech/grpcerror"
 	"errors"
 	"google.golang.org/grpc/codes"

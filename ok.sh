@@ -13,7 +13,7 @@ rm -f junit.xml
 
 modules=(
     "./..."
-    "./tech/grpcerror/..."
+    "./x/grpcerror/..."
 )
 
 section Building...

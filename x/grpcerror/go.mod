@@ -1,4 +1,4 @@
-module artk.dev/tech/grpcerror
+module artk.dev/x/grpcerror
 
 go 1.22.0
 

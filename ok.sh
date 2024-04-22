@@ -1,44 +1,39 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+section() {
+    echo -e "\e[1;34m$*\e[0m"
+}
+
 # Run the script at the root of the repo.
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# Ensure that the artifact output directories exist.
-mkdir -p .test
-
 # Remove JUnit reports from previous runs.
-find .test -type f -delete
+rm -f junit.xml
 
-build_module() {
-    module_root="$1"
-    go build -mod=readonly "./${module_root}/..."
-}
+modules=(
+    "./core/..."
+    "./tech/grpcerror/..."
+)
 
-test_module() {
-    module_root="$1"
-    gotestsum --junitfile ".test/${module_root/\//-}.junit.xml" -- \
-        -mod=readonly -timeout=1m -failfast -cover -race "./${module_root}/..."
-}
+section Building...
+go build -mod=readonly "${modules[@]}"
+echo
 
-vet_module() {
-    module_root="$1"
-    echo Vetting "$module_root" ...
+section Testing...
+gotestsum --junitfile "junit.xml" --\
+    -mod=readonly -timeout=1m -failfast -cover -race "${modules[@]}"
+echo
 
-    # Some linters (e.g., musttag) need to be run from the module root.
-    config="$(realpath .golangci.yaml)"
-    pushd "$module_root"
-    golangci-lint run -c "$config" "./..."
+section Vetting...
+linter_config="$(realpath .golangci.yaml)"
+for module in "${modules[@]}"; do
+    # Some linters such as musttag fail unless the module starts at the CWD.
+    pushd "$(dirname "${module}")"
+    golangci-lint run --config="${linter_config}" ./...
     popd
-}
-
-for module_root in core tech/*; do
-    echo -e "\e[1;34mModule artk.dev/${module_root}\e[0m"
-    build_module "$module_root"
-    test_module "$module_root"
-    vet_module "$module_root"
-    echo
 done
+echo
 
 echo -e "\e[1;32mOK\e[0m"
 exit 0

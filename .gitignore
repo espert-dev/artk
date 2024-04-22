@@ -2,4 +2,4 @@
 /go.sum
 
 # Test artifacts.
-/.test
+junit.xml

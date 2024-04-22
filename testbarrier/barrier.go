@@ -2,7 +2,7 @@
 package testbarrier
 
 import (
-	"artk.dev/mustbe"
+	"artk.dev/assume"
 	"time"
 )
 
@@ -19,7 +19,7 @@ func (b Barrier) Lift() {
 // Wait for the barrier to lift for up to a duration `d`.
 // If the deadline expires, the test will fail immediately.
 func (b Barrier) Wait(t testingT, d time.Duration) {
-	mustbe.NotNil(t)
+	assume.NotNil(t)
 
 	t.Helper()
 

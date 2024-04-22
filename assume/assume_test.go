@@ -1,7 +1,7 @@
-package mustbe_test
+package assume_test
 
 import (
-	"artk.dev/mustbe"
+	"artk.dev/assume"
 	"errors"
 	"testing"
 )
@@ -14,7 +14,7 @@ func TestEqual(t *testing.T) {
 			}
 		}()
 
-		mustbe.Equal(true, true)
+		assume.Equal(true, true)
 	})
 	t.Run("Panic if different", func(t *testing.T) {
 		defer func() {
@@ -23,7 +23,7 @@ func TestEqual(t *testing.T) {
 			}
 		}()
 
-		mustbe.Equal(false, true)
+		assume.Equal(false, true)
 	})
 }
 
@@ -35,7 +35,7 @@ func TestNoError(t *testing.T) {
 			}
 		}()
 
-		mustbe.NoError(nil)
+		assume.Success(nil)
 	})
 	t.Run("Panic if not nil", func(t *testing.T) {
 		defer func() {
@@ -44,7 +44,7 @@ func TestNoError(t *testing.T) {
 			}
 		}()
 
-		mustbe.NoError(errors.New("test error"))
+		assume.Success(errors.New("test error"))
 	})
 }
 
@@ -56,7 +56,7 @@ func TestNotNil(t *testing.T) {
 			}
 		}()
 
-		mustbe.NotNil(struct{}{})
+		assume.NotNil(struct{}{})
 	})
 	t.Run("Panic if nil", func(t *testing.T) {
 		defer func() {
@@ -65,7 +65,7 @@ func TestNotNil(t *testing.T) {
 			}
 		}()
 
-		mustbe.NotNil(nil)
+		assume.NotNil(nil)
 	})
 }
 
@@ -77,7 +77,7 @@ func TestTrue(t *testing.T) {
 			}
 		}()
 
-		mustbe.True(true)
+		assume.True(true)
 	})
 	t.Run("Panic if false", func(t *testing.T) {
 		defer func() {
@@ -86,6 +86,6 @@ func TestTrue(t *testing.T) {
 			}
 		}()
 
-		mustbe.True(false)
+		assume.True(false)
 	})
 }

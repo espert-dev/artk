@@ -2,7 +2,7 @@ package httperror
 
 import (
 	"artk.dev/apperror"
-	"artk.dev/mustbe"
+	"artk.dev/assume"
 	"io"
 	"net/http"
 	"strings"
@@ -11,7 +11,7 @@ import (
 // EncodeToText encodes an error into plain text.
 // No further writes to the ResponseWriter w should happen after this function.
 func EncodeToText(w http.ResponseWriter, err error) {
-	mustbe.NotNil(w)
+	assume.NotNil(w)
 
 	kind := apperror.KindOf(err)
 	status := EncodeKind(kind)
@@ -26,7 +26,7 @@ func EncodeToText(w http.ResponseWriter, err error) {
 
 // DecodeFromText decodes an error from plain text.
 func DecodeFromText(response *http.Response) error {
-	mustbe.NotNil(response)
+	assume.NotNil(response)
 
 	kind := DecodeKind(response.StatusCode)
 	if kind == apperror.OK {

@@ -2,9 +2,9 @@ package httperror_test
 
 import (
 	"artk.dev/apperror"
+	"artk.dev/assume"
 	"artk.dev/broken"
 	"artk.dev/httperror"
-	"artk.dev/mustbe"
 	"errors"
 	"io"
 	"mime"
@@ -133,7 +133,7 @@ func TestDecodeFromText_return_unknown_error_on_failure(t *testing.T) {
 			}
 
 			defer func() {
-				mustbe.NoError(reader.Close())
+				assume.Success(reader.Close())
 			}()
 
 			err := httperror.DecodeFromText(response)
@@ -176,7 +176,7 @@ func encodeAndDecode(err error) error {
 
 	response := w.Result()
 	defer func() {
-		mustbe.NoError(response.Body.Close())
+		assume.Success(response.Body.Close())
 	}()
 
 	return httperror.DecodeFromText(response)

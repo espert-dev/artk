@@ -39,7 +39,8 @@ func AsImmutableType(example any) {
 //   - The value is or contains a function.
 //   - The value is or contains an unsafe pointer.
 //   - The value is or contains a struct with unexported fields, except if
-//     that struct that has been marked with AsImmutableType.
+//     that struct that has been marked with AsImmutableType or the size of
+//     the field is zero (in order to allow unexported traits).
 func Of[T any](x T) T {
 	v := reflect.ValueOf(x)
 

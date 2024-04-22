@@ -62,3 +62,21 @@ func IsFinal(err error) bool {
 		return true
 	}
 }
+
+// IsUser returns true for errors that are usually attributable to the user,
+// as opposed to the implementation. For an analogy, think HTTP 400s
+// (client errors) vs. HTTP 500s (server errors).
+func IsUser(err error) bool {
+	switch kind := KindOf(err); kind {
+	case ValidationError,
+		UnauthorizedError,
+		ForbiddenError,
+		NotFoundError,
+		ConflictError,
+		PreconditionFailedError,
+		TooManyRequestsError:
+		return true
+	default:
+		return false
+	}
+}

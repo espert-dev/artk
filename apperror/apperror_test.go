@@ -414,6 +414,30 @@ func Test_non_semantic_errors_are_unknown(t *testing.T) {
 	)
 }
 
+func TestIsUser(t *testing.T) {
+	userKinds := map[apperror.Kind]struct{}{
+		apperror.ValidationError:         {},
+		apperror.UnauthorizedError:       {},
+		apperror.ForbiddenError:          {},
+		apperror.NotFoundError:           {},
+		apperror.ConflictError:           {},
+		apperror.PreconditionFailedError: {},
+		apperror.TooManyRequestsError:    {},
+	}
+
+	for _, kind := range apperror.KindValues() {
+		t.Run(kind.String(), func(t *testing.T) {
+			_, expected := userKinds[kind]
+
+			err := apperror.New(kind, message)
+			got := apperror.IsUser(err)
+			if got != expected {
+				t.Errorf("expected %v, got %v", expected, got)
+			}
+		})
+	}
+}
+
 func assertErrorKind(
 	t *testing.T,
 	err error,

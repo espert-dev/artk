@@ -19,7 +19,7 @@ func (e validationError) Kind() Kind {
 
 // Validation creates a new validation error.
 func Validation(msg string, a ...any) error {
-	return &validationError{error: fmt.Errorf(msg, a...)}
+	return validationError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsValidation wraps an existing error as a validation error.
@@ -29,7 +29,7 @@ func AsValidation(err error) error {
 		return nil
 	}
 
-	return &validationError{error: err}
+	return validationError{error: err}
 }
 
 // IsValidation matches validation errors.

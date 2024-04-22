@@ -19,7 +19,7 @@ func (e preconditionFailedError) Kind() Kind {
 
 // PreconditionFailed creates a new precondition failed error.
 func PreconditionFailed(msg string, a ...any) error {
-	return &preconditionFailedError{error: fmt.Errorf(msg, a...)}
+	return preconditionFailedError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsPreconditionFailed wraps an existing error as a precondition failed error.
@@ -29,7 +29,7 @@ func AsPreconditionFailed(err error) error {
 		return nil
 	}
 
-	return &preconditionFailedError{error: err}
+	return preconditionFailedError{error: err}
 }
 
 // IsPreconditionFailed matches precondition failed errors.

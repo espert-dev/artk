@@ -28,7 +28,7 @@ func AsUnknown(err error) error {
 		return nil
 	}
 
-	return &unknownError{error: err}
+	return unknownError{error: err}
 }
 
 // IsUnknown matches unknown errors.

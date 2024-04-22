@@ -19,7 +19,7 @@ func (e unauthorizedError) Kind() Kind {
 
 // Unauthorized creates a new unauthorized error.
 func Unauthorized(msg string, a ...any) error {
-	return &unauthorizedError{error: fmt.Errorf(msg, a...)}
+	return unauthorizedError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsUnauthorized wraps an existing error as a unauthorized error.
@@ -29,7 +29,7 @@ func AsUnauthorized(err error) error {
 		return nil
 	}
 
-	return &unauthorizedError{error: err}
+	return unauthorizedError{error: err}
 }
 
 // IsUnauthorized matches unauthorized errors.

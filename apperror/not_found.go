@@ -19,7 +19,7 @@ func (e notFoundError) Kind() Kind {
 
 // NotFound creates a new not found error.
 func NotFound(msg string, a ...any) error {
-	return &notFoundError{error: fmt.Errorf(msg, a...)}
+	return notFoundError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsNotFound wraps an existing error as a not found error.
@@ -29,7 +29,7 @@ func AsNotFound(err error) error {
 		return nil
 	}
 
-	return &notFoundError{error: err}
+	return notFoundError{error: err}
 }
 
 // IsNotFound matches not found errors.

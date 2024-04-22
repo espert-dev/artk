@@ -19,7 +19,7 @@ func (e conflictError) Kind() Kind {
 
 // Conflict creates a new conflict error.
 func Conflict(msg string, a ...any) error {
-	return &conflictError{error: fmt.Errorf(msg, a...)}
+	return conflictError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsConflict wraps an existing error as a conflict error.
@@ -29,7 +29,7 @@ func AsConflict(err error) error {
 		return nil
 	}
 
-	return &conflictError{error: err}
+	return conflictError{error: err}
 }
 
 // IsConflict matches conflict errors.

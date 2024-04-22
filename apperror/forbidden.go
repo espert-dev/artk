@@ -19,7 +19,7 @@ func (e forbiddenError) Kind() Kind {
 
 // Forbidden creates a new forbidden error.
 func Forbidden(msg string, a ...any) error {
-	return &forbiddenError{error: fmt.Errorf(msg, a...)}
+	return forbiddenError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsForbidden wraps an existing error as a forbidden error.
@@ -29,7 +29,7 @@ func AsForbidden(err error) error {
 		return nil
 	}
 
-	return &forbiddenError{error: err}
+	return forbiddenError{error: err}
 }
 
 // IsForbidden matches forbidden errors.

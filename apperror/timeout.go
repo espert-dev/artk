@@ -19,7 +19,7 @@ func (e timeoutError) Kind() Kind {
 
 // Timeout creates a new timeout error.
 func Timeout(msg string, a ...any) error {
-	return &timeoutError{error: fmt.Errorf(msg, a...)}
+	return timeoutError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsTimeout wraps an existing error as a timeout error.
@@ -29,7 +29,7 @@ func AsTimeout(err error) error {
 		return nil
 	}
 
-	return &timeoutError{error: err}
+	return timeoutError{error: err}
 }
 
 // IsTimeout matches timeout errors.

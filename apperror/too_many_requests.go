@@ -19,7 +19,7 @@ func (e tooManyRequestsError) Kind() Kind {
 
 // TooManyRequests creates a new too many requests error.
 func TooManyRequests(msg string, a ...any) error {
-	return &tooManyRequestsError{error: fmt.Errorf(msg, a...)}
+	return tooManyRequestsError{error: fmt.Errorf(msg, a...)}
 }
 
 // AsTooManyRequests wraps an existing error as a too many requests error.
@@ -29,7 +29,7 @@ func AsTooManyRequests(err error) error {
 		return nil
 	}
 
-	return &tooManyRequestsError{error: err}
+	return tooManyRequestsError{error: err}
 }
 
 // IsTooManyRequests matches too many requests errors.

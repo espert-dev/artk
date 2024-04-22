@@ -2,7 +2,7 @@
 package testbarrier
 
 import (
-	"artk.dev/core/mustbe"
+	"artk.dev/mustbe"
 	"time"
 )
 

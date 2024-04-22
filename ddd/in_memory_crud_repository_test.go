@@ -1,8 +1,8 @@
 package ddd_test
 
 import (
-	"artk.dev/core/apperror"
-	"artk.dev/core/ddd"
+	"artk.dev/apperror"
+	"artk.dev/ddd"
 	"context"
 	"errors"
 	"reflect"

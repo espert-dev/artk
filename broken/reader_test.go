@@ -1,7 +1,7 @@
 package broken_test
 
 import (
-	"artk.dev/core/broken"
+	"artk.dev/broken"
 	"testing"
 )
 

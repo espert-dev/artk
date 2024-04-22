@@ -12,8 +12,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 rm -f junit.xml
 
 modules=(
-    "./core/..."
-    "./tech/grpcerror/..."
+    "./..."
+    "./x/grpcerror/..."
 )
 
 section Building...

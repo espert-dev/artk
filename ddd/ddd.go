@@ -1,7 +1,7 @@
 package ddd
 
 import (
-	"artk.dev/core/typetraits"
+	"artk.dev/typetraits"
 )
 
 // Entity is embedded into structs that represent DDD entities.

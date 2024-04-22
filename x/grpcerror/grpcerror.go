@@ -6,7 +6,7 @@
 package grpcerror
 
 import (
-	"artk.dev/core/apperror"
+	"artk.dev/apperror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -1,10 +1,10 @@
 package httperror_test
 
 import (
-	"artk.dev/core/apperror"
-	"artk.dev/core/broken"
-	"artk.dev/core/httperror"
-	"artk.dev/core/mustbe"
+	"artk.dev/apperror"
+	"artk.dev/broken"
+	"artk.dev/httperror"
+	"artk.dev/mustbe"
 	"errors"
 	"io"
 	"mime"

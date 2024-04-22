@@ -1,7 +1,7 @@
 package httperror
 
 import (
-	"artk.dev/core/apperror"
+	"artk.dev/apperror"
 	"net/http"
 )
 

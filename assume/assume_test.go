@@ -27,7 +27,7 @@ func TestEqual(t *testing.T) {
 	})
 }
 
-func TestNoError(t *testing.T) {
+func TestSuccess(t *testing.T) {
 	t.Run("Do not panic if nil", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r != nil {

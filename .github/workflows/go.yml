@@ -1,0 +1,51 @@
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - "1.22"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+          cache-dependency-path: |
+            core/go.sum
+            tech/grpcerror/go.sum
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.57.2
+          args: "--help" # Install the tool, but don't run it.
+
+      - name: Install gotestsum
+        run: go install gotest.tools/gotestsum@latest
+
+      - name: Build, test, and vet
+        run: ./ok.sh
+
+      - name: Test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Tests
+          path: junit.xml
+          reporter: java-junit

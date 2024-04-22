@@ -11,10 +11,14 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # Remove JUnit reports from previous runs.
 rm -f junit.xml
 
-modules=(
-    "./..."
-    "./x/grpcerror/..."
-)
+section Detecting modules...
+modules=()
+for gomod in $(find -type f -name go.mod | sort); do
+    module="$(dirname "${gomod}")/..."
+    echo "- ${module}"
+    modules+=("${module}")
+done
+echo
 
 section Building...
 go build -mod=readonly "${modules[@]}"

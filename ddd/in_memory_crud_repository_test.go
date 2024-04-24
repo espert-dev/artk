@@ -5,6 +5,7 @@ import (
 	"artk.dev/ddd"
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -319,6 +320,75 @@ func TestInMemoryCrudRepository_Delete_not_found_if_missing(t *testing.T) {
 	}
 
 	thenItDoesNotExist(t, r, id)
+}
+
+func TestInMemoryCrudRepository_NotFound(t *testing.T) {
+	r := NewInMemoryEntityRepository()
+
+	const id int64 = 1234
+	for _, tc := range []struct {
+		Name        string
+		constructor func(id int64) string
+		msg         string
+	}{
+		{
+			Name:        "default error message",
+			constructor: nil,
+			msg:         "not found: 1234",
+		},
+		{
+			Name: "custom error message",
+			constructor: func(id int64) string {
+				return fmt.Sprintf("missing item %v", id)
+			},
+			msg: "missing item 1234",
+		},
+	} {
+		t.Run(tc.Name, func(t *testing.T) {
+			r.Errors.NotFound = tc.constructor
+			err := r.NotFound(id)
+			equalErrorMessage(t, tc.msg, err)
+		})
+	}
+}
+
+func TestInMemoryCrudRepository_AlreadyExists(t *testing.T) {
+	r := NewInMemoryEntityRepository()
+
+	const id int64 = 1234
+	for _, tc := range []struct {
+		Name        string
+		constructor func(id int64) string
+		msg         string
+	}{
+		{
+			Name:        "default error message",
+			constructor: nil,
+			msg:         "already exists: 1234",
+		},
+		{
+			Name: "custom error message",
+			constructor: func(id int64) string {
+				return fmt.Sprintf("duplicate item %v", id)
+			},
+			msg: "duplicate item 1234",
+		},
+	} {
+		t.Run(tc.Name, func(t *testing.T) {
+			r.Errors.AlreadyExists = tc.constructor
+			err := r.AlreadyExists(id)
+			equalErrorMessage(t, tc.msg, err)
+		})
+	}
+}
+
+func equalErrorMessage(t *testing.T, expected string, err error) {
+	if err == nil {
+		t.Fatal("missing expected error")
+	}
+	if msg := err.Error(); expected != msg {
+		t.Errorf("expected %q, got %q", expected, msg)
+	}
 }
 
 func givenItExists(

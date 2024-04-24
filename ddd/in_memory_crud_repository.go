@@ -4,6 +4,7 @@ import (
 	"artk.dev/apperror"
 	"artk.dev/clone"
 	"context"
+	"errors"
 	"sync"
 )
 
@@ -19,6 +20,17 @@ type InMemoryCrudRepository[
 ] struct {
 	Mutex          sync.RWMutex
 	Serializations map[I]S
+
+	// Configurable error message constructors.
+	Errors struct {
+		// NotFound constructs the error message when an item cannot
+		// be found.
+		NotFound func(id I) string
+
+		// AlreadyExists constructs the error message when trying to
+		// create an item when another item already exists with that ID.
+		AlreadyExists func(id I) string
+	}
 }
 
 // Reset (re-)initializes the repository.
@@ -44,7 +56,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Get(
 	serialization, ok := r.Serializations[id]
 	if !ok {
 		var zero A
-		return zero, apperror.NotFound("not found: %v", id)
+		return zero, r.NotFound(id)
 	}
 
 	serialization = clone.Of(serialization)
@@ -66,7 +78,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Insert(
 
 	id := item.ID()
 	if _, ok := r.Serializations[id]; ok {
-		return apperror.Conflict("already exists: %v", id)
+		return r.AlreadyExists(id)
 	}
 
 	serialization := item.Serialize()
@@ -89,7 +101,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Update(
 
 	serialization, ok := r.Serializations[id]
 	if !ok {
-		return apperror.NotFound("not found: %v", id)
+		return r.NotFound(id)
 	}
 
 	serialization = clone.Of(serialization)
@@ -151,9 +163,29 @@ func (r *InMemoryCrudRepository[A, I, S]) Delete(
 	defer r.Mutex.Unlock()
 
 	if _, ok := r.Serializations[id]; !ok {
-		return apperror.NotFound("not found: %v", id)
+		return r.NotFound(id)
 	}
 
 	delete(r.Serializations, id)
 	return nil
+}
+
+func (r *InMemoryCrudRepository[A, I, S]) NotFound(id I) error {
+	if constructor := r.Errors.NotFound; constructor != nil {
+		// Wrap pre-existing error to prevent string interpolation.
+		err := errors.New(constructor(id))
+		return apperror.AsNotFound(err)
+	}
+
+	return apperror.NotFound("not found: %v", id)
+}
+
+func (r *InMemoryCrudRepository[A, I, S]) AlreadyExists(id I) error {
+	if constructor := r.Errors.AlreadyExists; constructor != nil {
+		// Wrap pre-existing error to prevent string interpolation.
+		err := errors.New(constructor(id))
+		return apperror.AsConflict(err)
+	}
+
+	return apperror.Conflict("already exists: %v", id)
 }

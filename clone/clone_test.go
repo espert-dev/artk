@@ -2,11 +2,12 @@ package clone_test
 
 import (
 	"artk.dev/clone"
+	"artk.dev/internal/assert"
+	"artk.dev/internal/require"
 	"artk.dev/typetraits"
 	"fmt"
 	"math"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 	"unsafe"
@@ -34,23 +35,7 @@ type (
 )
 
 func TestAsImmutableType_example_cannot_be_nil(t *testing.T) {
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Fatal("missing expected panic")
-		}
-
-		s, ok := r.(string)
-		if !ok {
-			t.Fatal("expected a string")
-		}
-
-		const why = "example cannot be nil"
-		if !strings.Contains(s, why) {
-			t.Error("missing cause of panic")
-		}
-	}()
-
+	defer assert.PanicBecause(t, "example cannot be nil")
 	clone.AsImmutableType(nil)
 }
 
@@ -98,36 +83,16 @@ func TestAsImmutableType_example_must_be_of_a_struct_type(t *testing.T) {
 		stringType(""),
 		unsafe.Pointer(nil),
 	} {
-		const why = "only structs can be declared immutable"
 		t.Run(reflect.TypeOf(v).String(), func(t *testing.T) {
-			defer func() {
-				r := recover()
-				if r == nil {
-					t.Fatal("missing expected panic")
-				}
-
-				s, ok := r.(string)
-				if !ok {
-					t.Fatal("expected string value")
-				}
-
-				if !strings.Contains(s, why) {
-					t.Error("missing cause of panic")
-				}
-			}()
+			const why = "only structs can be declared immutable"
+			defer assert.PanicBecause(t, why)
 			clone.AsImmutableType(v)
 		})
 	}
 }
 
 func TestAsImmutableType_is_idempotent(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Error("Unexpected panic:", r)
-		}
-	}()
-
-	// The below sequence of events does not panic.
+	defer assert.NoPanic(t)
 	clone.AsImmutableType(time.Time{})
 	clone.AsImmutableType(time.Time{})
 }
@@ -180,13 +145,8 @@ func testValues[T comparable](t *testing.T, values []T) {
 	t.Run(reflect.TypeOf(values[0]).String(), func(t *testing.T) {
 		for _, v := range values {
 			t.Run(fmt.Sprintf("%v", v), func(t *testing.T) {
-				if got := clone.Of(v); got != v {
-					t.Errorf(
-						"expected %v, got %v",
-						v,
-						got,
-					)
-				}
+				got := clone.Of(v)
+				assert.Equal(t, v, got)
 			})
 		}
 	})
@@ -211,9 +171,7 @@ func testArray[T comparable](t *testing.T, array [2]T) {
 	t.Helper()
 	t.Run(fmt.Sprintf("%T%v", array, array), func(t *testing.T) {
 		c := clone.Of(array)
-		if !reflect.DeepEqual(array, c) {
-			t.Errorf("the arrays are different")
-		}
+		assert.DeepEqual(t, array, c)
 	})
 }
 
@@ -221,9 +179,7 @@ func TestOf_supports_interfaces(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		var v any
 		c := clone.Of(v)
-		if v != c {
-			t.Errorf("expected %v, got %v", v, c)
-		}
+		assert.Equal(t, v, c)
 	})
 	t.Run("nested nil interface", func(t *testing.T) {
 		type NestedInterface struct {
@@ -232,23 +188,17 @@ func TestOf_supports_interfaces(t *testing.T) {
 		v := NestedInterface{Any: nil}
 
 		c := clone.Of(v)
-		if v != c {
-			t.Errorf("expected %v, got %v", v, c)
-		}
+		assert.Equal(t, v, c)
 	})
 	t.Run("not nil", func(t *testing.T) {
 		var v any = true
 		c := clone.Of(v)
-		if v != c {
-			t.Errorf("expected %v, got %v", v, c)
-		}
+		assert.Equal(t, v, c)
 	})
 	t.Run("nil interface", func(t *testing.T) {
 		var v any = (*bool)(nil)
 		c := clone.Of(v)
-		if v != c {
-			t.Errorf("expected %v, got %v", v, c)
-		}
+		assert.Equal(t, v, c)
 	})
 	t.Run("nested nil interface", func(t *testing.T) {
 		type NestedInterface struct {
@@ -257,9 +207,7 @@ func TestOf_supports_interfaces(t *testing.T) {
 		v := NestedInterface{Any: (*bool)(nil)}
 
 		c := clone.Of(v)
-		if v != c {
-			t.Errorf("expected %v, got %v", v, c)
-		}
+		assert.Equal(t, v, c)
 	})
 }
 
@@ -268,21 +216,15 @@ func TestOf_supports_pointers(t *testing.T) {
 		var v *int
 
 		c := clone.Of(v)
-		if c != nil {
-			t.Errorf("unexpected not nil")
-		}
+		assert.Nil(t, c)
 	})
 	t.Run("not nil", func(t *testing.T) {
 		v := new(int)
 		*v = 1
 
 		c := clone.Of(v)
-		if c == v {
-			t.Errorf("unexpected shallow copy")
-		}
-		if *c != *v {
-			t.Errorf("expected %v, got %v", *v, *c)
-		}
+		assert.NotSame(t, c, v)
+		assert.Equal(t, *c, *v)
 	})
 }
 
@@ -310,26 +252,8 @@ func TestOf_supports_acyclic_maps(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			c := clone.Of(tt.input)
-			if same(tt.input, c) {
-				t.Errorf("unexpected not nil")
-			}
-			if lv, lc := len(tt.input), len(c); lv != lc {
-				t.Errorf("different lengths: %v, %v", lv, lc)
-			}
-			for k, x := range tt.input {
-				y, ok := c[k]
-				if !ok {
-					t.Errorf("missing key: %v", k)
-				}
-				if x != y {
-					t.Errorf(
-						"on %v: expected %v, got %v",
-						k,
-						x,
-						y,
-					)
-				}
-			}
+			assert.NotSame(t, tt.input, c)
+			assert.DeepEqual(t, tt.input, c)
 		})
 	}
 }
@@ -339,12 +263,8 @@ func TestOf_supports_cyclic_maps(t *testing.T) {
 	v["next"] = v
 
 	c := clone.Of(v)
-	if same(v, c) {
-		t.Errorf("unexpected shallow copy")
-	}
-	if !same(v["next"], any(v)) {
-		t.Error("cyclic structure not preserved")
-	}
+	assert.NotSame(t, v, c)
+	assert.Same(t, v["next"], any(v))
 }
 
 func TestOf_supports_acyclic_slices(t *testing.T) {
@@ -372,20 +292,11 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 
 	t.Run(name, func(t *testing.T) {
 		c := clone.Of(slice)
-
-		if slice == nil && c != nil || slice != nil && c == nil {
-			t.Errorf("nil not preserved")
-		}
-		if len(c) != len(slice) {
-			t.Errorf("the slices have different lengths")
-		}
-		if !reflect.DeepEqual(slice, c) {
-			t.Errorf("the slices have different elements")
-		}
+		assert.DeepEqual(t, slice, c)
 
 		// Sharing is never an issue if the slices are empty.
-		if len(slice) != 0 && same(slice, c) {
-			t.Errorf("unexpected shallow copy")
+		if len(slice) != 0 {
+			assert.NotSame(t, slice, c)
 		}
 	})
 }
@@ -395,12 +306,8 @@ func TestOf_supports_cyclic_slices(t *testing.T) {
 	v[0] = v
 
 	c := clone.Of(v)
-	if same(v, c) {
-		t.Errorf("unexpected shallow copy")
-	}
-	if !same(v[0], any(v)) {
-		t.Error("cyclic structure not preserved")
-	}
+	assert.NotSame(t, v, c)
+	assert.Same(t, v[0], any(v))
 }
 
 func TestOf_supports_strings(t *testing.T) {
@@ -454,9 +361,7 @@ func TestOf_supports_cyclic_structs_without_unexported_fields(t *testing.T) {
 	first.Next = second
 
 	c := clone.Of(first)
-	if c.Next.Next != c {
-		t.Error("cyclic structure not preserved")
-	}
+	assert.Same(t, c, c.Next.Next)
 }
 
 func TestOf_supports_immutable_structs_with_unexported_fields(t *testing.T) {
@@ -465,12 +370,10 @@ func TestOf_supports_immutable_structs_with_unexported_fields(t *testing.T) {
 		unexportedField int
 	}
 	v := ImmutableType{unexportedField: 42}
-
 	clone.AsImmutableType(ImmutableType{})
+
 	c := clone.Of(v)
-	if v != c {
-		t.Errorf("expected %v, got %v", v, c)
-	}
+	assert.Equal(t, v, c)
 }
 
 func TestOf_supports_structs_with_unexported_zero_size_traits(t *testing.T) {
@@ -482,9 +385,7 @@ func TestOf_supports_structs_with_unexported_zero_size_traits(t *testing.T) {
 	v := Type{Value: 42}
 
 	c := clone.Of(v)
-	if c.Value != 42 {
-		t.Errorf("expected %v, got %v", v, c)
-	}
+	assert.Equal(t, 42, c.Value)
 }
 
 func TestOf_immutable_struct_types_are_shallow_copied(t *testing.T) {
@@ -501,18 +402,10 @@ func TestOf_immutable_struct_types_are_shallow_copied(t *testing.T) {
 		Pointer: new(int),
 	}
 	c := clone.Of(v)
-	if !reflect.DeepEqual(v, c) {
-		t.Errorf("expected deep equality")
-	}
-	if !same(v.Slice, c.Slice) {
-		t.Error("expected a shallow copy of the slice")
-	}
-	if !same(v.Map, c.Map) {
-		t.Error("expected a shallow copy of the map")
-	}
-	if !same(v.Pointer, c.Pointer) {
-		t.Error("expected a shallow copy of the pointer")
-	}
+	assert.DeepEqual(t, v, c)
+	assert.Same(t, v.Slice, c.Slice)
+	assert.Same(t, v.Map, c.Map)
+	assert.Same(t, v.Pointer, c.Pointer)
 }
 
 func TestOf_mutable_struct_types_are_deep_copied(t *testing.T) {
@@ -528,18 +421,10 @@ func TestOf_mutable_struct_types_are_deep_copied(t *testing.T) {
 		Pointer: new(int),
 	}
 	c := clone.Of(v)
-	if !reflect.DeepEqual(v, c) {
-		t.Errorf("expected deep equality")
-	}
-	if same(v.Slice, c.Slice) {
-		t.Error("expected a deep copy of the slice")
-	}
-	if same(v.Map, c.Map) {
-		t.Error("expected a deep copy of the map")
-	}
-	if same(v.Pointer, c.Pointer) {
-		t.Error("expected a deep copy of the pointer")
-	}
+	assert.DeepEqual(t, v, c)
+	assert.NotSame(t, v.Slice, c.Slice)
+	assert.NotSame(t, v.Map, c.Map)
+	assert.NotSame(t, v.Pointer, c.Pointer)
 }
 
 func TestOf_panics_on_channels(t *testing.T) {
@@ -564,48 +449,28 @@ func handleUnsupportedKind(t *testing.T, kind reflect.Kind) {
 	t.Helper()
 
 	r := recover()
-	if r == nil {
-		t.Fatal("missing expected panic")
-	}
+	require.NotNil(t, nil)
+	s := require.As[string](t, r)
 
-	s, ok := r.(string)
-	if !ok {
-		t.Fatal("expected a string panic value")
-	}
-	if !strings.Contains(s, "unsupported kind") {
-		t.Error("missing reason for failure")
-	}
-	if !strings.Contains(s, kind.String()) {
-		t.Error("missing kind")
-	}
+	const reasonForFailure = "unsupported kind"
+	assert.Substring(t, s, reasonForFailure)
+	assert.Substring(t, s, kind.String())
 }
 
 func TestOf_panics_on_mutable_struct_with_unexported_fields(t *testing.T) {
 	defer func() {
 		r := recover()
-		if r == nil {
-			t.Fatal("missing expected panic")
-		}
-
-		s, ok := r.(string)
-		if !ok {
-			t.Fatal("expected a string panic value")
-		}
+		require.NotNil(t, r)
+		s := require.As[string](t, r)
 
 		const why = "struct has unexported fields"
-		if !strings.Contains(s, why) {
-			t.Error("missing cause of panic")
-		}
+		assert.Substring(t, s, why)
 
 		const structName = "StructWithPrivateFields"
-		if !strings.Contains(s, structName) {
-			t.Error("missing struct name")
-		}
+		assert.Substring(t, s, structName)
 
 		const unexportedFieldName = "anUnexportedField"
-		if !strings.Contains(s, unexportedFieldName) {
-			t.Error("missing field name")
-		}
+		assert.Substring(t, s, unexportedFieldName)
 	}()
 
 	type StructWithPrivateFields struct {
@@ -618,26 +483,7 @@ func TestOf_panics_on_mutable_struct_with_unexported_fields(t *testing.T) {
 func testDeepEqual(t *testing.T, v any) {
 	t.Helper()
 	t.Run(fmt.Sprintf("%T(%v)", v, v), func(t *testing.T) {
-		if c := clone.Of(v); !reflect.DeepEqual(c, v) {
-			t.Errorf("expected '%+v', got '%+v'", v, c)
-		}
+		c := clone.Of(v)
+		assert.DeepEqual(t, v, c)
 	})
-}
-
-// same checks if the two objects share memory (i.e., are shallow copies).
-func same[T any](x, y T) bool {
-	vx := reflect.ValueOf(x)
-	vy := reflect.ValueOf(y)
-
-	// Checking the validity of the value is necessary for interface types.
-	if !vx.IsValid() || !vy.IsValid() {
-		return false
-	}
-
-	// Checking for nil is necessary for concrete types.
-	if vx.IsNil() || vy.IsNil() {
-		return false
-	}
-
-	return vx.Pointer() == vy.Pointer()
 }

@@ -2,39 +2,18 @@ package typetraits_test
 
 import (
 	"artk.dev/typetraits"
+	"testing"
+	"unsafe"
 )
 
-func ExampleNoCompare() {
-	type T struct {
-		_ typetraits.NoCompare
+func TestNoCopy_has_size_zero(t *testing.T) {
+	if size := unsafe.Sizeof(typetraits.NoCopy{}); size != 0 {
+		t.Errorf("expected 0, got %v", size)
 	}
-
-	x := T{}
-	_ = x
-
-	// Uncomment to try:
-	// x == T{} // Error!
 }
 
-func ExampleNoCopy() {
-	type T struct {
-		_ typetraits.NoCopy
+func TestNoCompare_has_size_zero(t *testing.T) {
+	if size := unsafe.Sizeof(typetraits.NoCompare{}); size != 0 {
+		t.Errorf("expected 0, got %v", size)
 	}
-
-	// Uncomment to try:
-	// T{} := T{}  // Error!
-
-	// This is just here to keep the compiler happy.
-	_ = T{}
-
-	// In general, you want to use an anonymous field to avoid exposing
-	// the dummy methods in typetraits.NoCopy. Otherwise, the below code
-	// becomes possible, which is harmless but confusing.
-	type S struct {
-		typetraits.NoCopy // Embedding instead of anonymous field!
-	}
-
-	z := new(S)
-	z.Lock()         // Generally, this method should not be exposed.
-	defer z.Unlock() // Generally, this method should not be exposed.
 }

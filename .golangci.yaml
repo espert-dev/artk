@@ -1,7 +1,3 @@
-run:
-  timeout: 5m
-  modules-download-mode: readonly
-
 linters:
   disable-all: true
   enable:
@@ -13,8 +9,8 @@ linters:
     - dupl
     - dupword
     - durationcheck
-    - errchkjson
     - errcheck
+    - errchkjson
     - execinquery
     - exportloopref
     - gocognit
@@ -30,10 +26,10 @@ linters:
     - gosimple
     - gosmopolitan
     - govet
-    - lll
     - importas
     - ineffassign
     - intrange
+    - lll
     - makezero
     - mirror
     - misspell
@@ -54,39 +50,42 @@ linters:
     - staticcheck
     - tagliatelle
     - tenv
+    - testableexamples
     - testifylint
     - testpackage
     - thelper
     - unconvert
+    - unused
     - usestdlibvars
     - wastedassign
-    - unused
-
 linters-settings:
-  lll:
-    line-length: 80
-    tab-width: 8
   gocyclo:
     min-complexity: 10
   godot:
-    scope: all
-    period: true
     exclude:
-      - "Output:.*$"
+      - Output:.*$
+    period: true
+    scope: all
   gomoddirectives:
     replace-local: true
   importas:
     no-extra-aliases: true
+  lll:
+    line-length: 80
+    tab-width: 8
   tagliatelle:
     case:
-      use-field-name: true
       rules:
-        json: camel
-        yaml: camel
-        xml: camel
-        toml: camel
-        bson: camel
         avro: snake
-        mapstructure: kebab
+        bson: camel
         env: upperSnake
         envconfig: upperSnake
+        json: camel
+        mapstructure: kebab
+        toml: camel
+        xml: camel
+        yaml: camel
+      use-field-name: true
+run:
+  modules-download-mode: readonly
+

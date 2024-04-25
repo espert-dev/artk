@@ -50,6 +50,7 @@ linters:
     - staticcheck
     - tagliatelle
     - tenv
+    - testableexamples
     - testifylint
     - testpackage
     - thelper

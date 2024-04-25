@@ -49,7 +49,7 @@ func NotSubstring[S ~string](t T, s, substr S) bool {
 func Nil(t T, got any) bool {
 	t.Helper()
 
-	if got == nil {
+	if !isNil(got) {
 		t.Errorf(`expected nil, got %v`, got)
 		return false
 	}
@@ -59,7 +59,7 @@ func Nil(t T, got any) bool {
 func NotNil(t T, got any) bool {
 	t.Helper()
 
-	if got != nil {
+	if isNil(got) {
 		t.Errorf(`expected not nil, got nil`)
 		return false
 	}
@@ -140,18 +140,18 @@ func PanicBecause(t T, why string) bool {
 
 	r := recover()
 	if r == nil {
-		t.Error("missing expected panic")
+		t.Errorf("missing expected panic")
 		return false
 	}
 
 	s, ok := r.(string)
 	if !ok {
-		t.Error("expected a string, got:", r)
+		t.Errorf("expected a string, got: %v", r)
 		return false
 	}
 
 	if !strings.Contains(s, why) {
-		t.Error("cannot find expected reason in ", s)
+		t.Errorf("cannot find expected reason in %v", s)
 		return false
 	}
 
@@ -169,6 +169,23 @@ func NoPanic(t T) bool {
 	}
 
 	return true
+}
+
+// isNil checks for nil-ability, considering complex situations such as nil interfaces.
+func isNil(x any) bool {
+	if x == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(x)
+	if !v.IsValid() {
+		return true
+	}
+	if v.IsNil() {
+		return true
+	}
+
+	return false
 }
 
 // same checks if the two objects share memory (i.e., are shallow copies).

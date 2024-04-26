@@ -447,8 +447,7 @@ func TestOf_panics_on_unsafe_pointers(t *testing.T) {
 
 func handleUnsupportedKind(t_p *testing.T, kind reflect.Kind) {
 	r := recover()
-	require.NotNil(t_p, r)
-	s := require.As[string](t_p, r)
+	s := require.Is[string](t_p, r)
 
 	const reasonForFailure = "unsupported kind"
 	assert.Substring(t_p, s, reasonForFailure)
@@ -458,8 +457,7 @@ func handleUnsupportedKind(t_p *testing.T, kind reflect.Kind) {
 func TestOf_panics_on_mutable_struct_with_unexported_fields(t_p *testing.T) {
 	defer func() {
 		r := recover()
-		require.NotNil(t_p, r)
-		s := require.As[string](t_p, r)
+		s := require.Is[string](t_p, r)
 
 		const why = "struct has unexported fields"
 		assert.Substring(t_p, s, why)

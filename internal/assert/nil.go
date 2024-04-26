@@ -6,7 +6,7 @@ func Nil(t T, got any) bool {
 	t.Helper()
 
 	if !isNil(got) {
-		t.Errorf(`expected nil, got %v`, got)
+		report1(t, "expected nil", got)
 		return false
 	}
 	return true
@@ -16,7 +16,7 @@ func NotNil(t T, got any) bool {
 	t.Helper()
 
 	if isNil(got) {
-		t.Errorf(`expected not nil`)
+		report1(t, "expected not nil", got)
 		return false
 	}
 
@@ -27,7 +27,7 @@ func NilPointer[V any](t T, got *V) bool {
 	t.Helper()
 
 	if got != nil {
-		t.Errorf(`expected nil pointer, got %v`, got)
+		report1(t, "expected nil pointer", got)
 		return false
 	}
 
@@ -38,7 +38,7 @@ func NotNilPointer[V any](t T, got *V) bool {
 	t.Helper()
 
 	if got == nil {
-		t.Errorf(`expected not nil pointer, got %v`, got)
+		report1(t, `expected not nil pointer`, got)
 		return false
 	}
 
@@ -49,7 +49,7 @@ func NilSlice[V any](t T, got []V) bool {
 	t.Helper()
 
 	if got != nil {
-		t.Errorf(`expected nil slice, got %v`, got)
+		report1(t, "expected nil slice", got)
 		return false
 	}
 
@@ -60,23 +60,44 @@ func NilMap[K comparable, V any](t T, got map[K]V) bool {
 	t.Helper()
 
 	if got != nil {
-		t.Errorf("expected nil map, got %v", got)
+		report1(t, "expected nil map", got)
 		return false
 	}
 
 	return true
 }
 
-func NilChan[V any](t T, got chan V) {
+func NilChan[V any](t T, got chan V) bool {
+	t.Helper()
 
+	if got != nil {
+		report1(t, "expected nil chan", got)
+		return false
+	}
+
+	return true
 }
 
-func NilInputChan[V any](t T, got chan<- V) {
+func NilInputChan[V any](t T, got chan<- V) bool {
+	t.Helper()
 
+	if got != nil {
+		report1(t, "expected nil chan<-", got)
+		return false
+	}
+
+	return true
 }
 
-func NilOutputChan[V any](t T, got chan<- V) {
+func NilOutputChan[V any](t T, got chan<- V) bool {
+	t.Helper()
 
+	if got != nil {
+		report1(t, "expected nil <-chan", got)
+		return false
+	}
+
+	return true
 }
 
 // isNil checks for nil-ability, considering complex situations such as nil
@@ -89,18 +110,15 @@ func isNil(x any) (ok bool) {
 
 	// Handle nil values with an associated type.
 	v := reflect.ValueOf(x)
+	defer func() {
+		// v.IsNil will panic if the type is not nil-able. This is
+		// inconvenient, because there is no way to define a constraint
+		// for nil-able. So, rather than duplicate the switch in IsNil,
+		// we have opted to install a panic handler instead.
+		if r := recover(); r != nil {
+			ok = false
+		}
+	}()
 
-	// Mimics reflect.Value.IsNil.
-	switch v.Kind() {
-	case reflect.Chan,
-		reflect.Func,
-		reflect.Map,
-		reflect.Pointer,
-		reflect.UnsafePointer,
-		reflect.Interface,
-		reflect.Slice:
-		return v.IsNil()
-	default:
-		return false
-	}
+	return v.IsNil()
 }

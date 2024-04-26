@@ -6,12 +6,12 @@ import (
 
 type TestingT interface {
 	Helper()
-	Errorf(format string, args ...any)
+	Error(args ...any)
 	FailNow()
 }
 
-func As[V any](t TestingT, x any) V {
-	v, ok := assert.As[V](t, x)
+func Is[V any](t TestingT, x any) V {
+	v, ok := assert.Is[V](t, x)
 	if !ok {
 		t.FailNow()
 	}

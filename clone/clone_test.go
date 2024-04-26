@@ -445,32 +445,30 @@ func TestOf_panics_on_unsafe_pointers(t *testing.T) {
 	clone.Of(v)
 }
 
-func handleUnsupportedKind(t *testing.T, kind reflect.Kind) {
-	t.Helper()
-
+func handleUnsupportedKind(t_p *testing.T, kind reflect.Kind) {
 	r := recover()
-	require.NotNil(t, nil)
-	s := require.As[string](t, r)
+	require.NotNil(t_p, r)
+	s := require.As[string](t_p, r)
 
 	const reasonForFailure = "unsupported kind"
-	assert.Substring(t, s, reasonForFailure)
-	assert.Substring(t, s, kind.String())
+	assert.Substring(t_p, s, reasonForFailure)
+	assert.Substring(t_p, s, kind.String())
 }
 
-func TestOf_panics_on_mutable_struct_with_unexported_fields(t *testing.T) {
+func TestOf_panics_on_mutable_struct_with_unexported_fields(t_p *testing.T) {
 	defer func() {
 		r := recover()
-		require.NotNil(t, r)
-		s := require.As[string](t, r)
+		require.NotNil(t_p, r)
+		s := require.As[string](t_p, r)
 
 		const why = "struct has unexported fields"
-		assert.Substring(t, s, why)
+		assert.Substring(t_p, s, why)
 
 		const structName = "StructWithPrivateFields"
-		assert.Substring(t, s, structName)
+		assert.Substring(t_p, s, structName)
 
 		const unexportedFieldName = "anUnexportedField"
-		assert.Substring(t, s, unexportedFieldName)
+		assert.Substring(t_p, s, unexportedFieldName)
 	}()
 
 	type StructWithPrivateFields struct {

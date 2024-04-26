@@ -46,27 +46,6 @@ func NotSubstring[S ~string](t T, s, substr S) bool {
 	return true
 }
 
-func Nil(t T, got any) bool {
-	t.Helper()
-
-	if !isNil(got) {
-		t.Errorf(`expected nil, got %v`, got)
-		return false
-	}
-	return true
-}
-
-func NotNil(t T, got any) bool {
-	t.Helper()
-
-	if isNil(got) {
-		t.Errorf(`expected not nil, got nil`)
-		return false
-	}
-
-	return true
-}
-
 func Equal[K comparable](t T, expected, got K) bool {
 	t.Helper()
 
@@ -169,23 +148,6 @@ func NoPanic(t T) bool {
 	}
 
 	return true
-}
-
-// isNil checks for nil-ability, considering complex situations such as nil interfaces.
-func isNil(x any) bool {
-	if x == nil {
-		return true
-	}
-
-	v := reflect.ValueOf(x)
-	if !v.IsValid() {
-		return true
-	}
-	if v.IsNil() {
-		return true
-	}
-
-	return false
 }
 
 // same checks if the two objects share memory (i.e., are shallow copies).

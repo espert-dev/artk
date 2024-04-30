@@ -39,6 +39,14 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
 
+      - name: Verify that generated files are up-to-date
+        run: >
+          ./regenerate.sh
+          && git add .
+          && git diff --quiet
+          && git diff --cached --quiet
+          || (git status; exit 1)
+
       - name: Build, test, and vet
         run: ./ok.sh
 

@@ -20,9 +20,9 @@ func _() {
 	_ = x[TimeoutError-9]
 }
 
-const _Kind_name = "OKUnknownKindValidationKindUnauthorizedKindForbiddenKindNotFoundKindConflictKindPreconditionFailedKindTooManyRequestsKindTimeoutKind"
+const _Kind_name = "OKUnknownErrorValidationErrorUnauthorizedErrorForbiddenErrorNotFoundErrorConflictErrorPreconditionFailedErrorTooManyRequestsErrorTimeoutError"
 
-var _Kind_index = [...]uint8{0, 2, 13, 27, 43, 56, 68, 80, 102, 121, 132}
+var _Kind_index = [...]uint8{0, 2, 14, 29, 46, 60, 73, 86, 109, 129, 141}
 
 func (i Kind) String() string {
 	if i < 0 || i >= Kind(len(_Kind_index)-1) {

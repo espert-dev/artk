@@ -57,17 +57,17 @@ func TestEncodeToText_content_type_is_plain_text(t *testing.T) {
 
 func TestEncodeToText_contains_error_message_in_body(t *testing.T) {
 	for _, kind := range apperror.KindValues() {
+		if kind == apperror.OK || kind == apperror.UnknownError {
+			// Special cases.
+			continue
+		}
+
 		t.Run(kind.String(), func(t *testing.T) {
 			err := apperror.New(kind, errorMessage)
 			w := httptest.NewRecorder()
 			httperror.EncodeToText(w, err)
 
-			// OK is returned as a nil error with no message.
 			expected := errorMessage
-			if kind == apperror.OK {
-				expected = ""
-			}
-
 			got := strings.TrimSpace(w.Body.String())
 			if got != expected {
 				t.Errorf(
@@ -77,6 +77,36 @@ func TestEncodeToText_contains_error_message_in_body(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func TestEncodeToText_message_is_empty_if_kind_is_OK(t *testing.T) {
+	var err error
+	w := httptest.NewRecorder()
+	httperror.EncodeToText(w, err)
+
+	expected := ""
+	if got := strings.TrimSuffix(w.Body.String(), "\n"); got != expected {
+		t.Errorf(
+			`expected "%v", got "%v"`,
+			expected,
+			got,
+		)
+	}
+}
+
+func TestEncodeToText_redacts_the_message_of_unknown_errors(t *testing.T) {
+	err := errors.New("an unknown error")
+	w := httptest.NewRecorder()
+	httperror.EncodeToText(w, err)
+
+	const expected = "Internal Server Error"
+	if got := strings.TrimSuffix(w.Body.String(), "\n"); got != expected {
+		t.Errorf(
+			`expected "%v", got "%v"`,
+			errorMessage,
+			got,
+		)
 	}
 }
 
@@ -105,6 +135,11 @@ func TestDecodeFromText_kind_encoding_is_reversible(t *testing.T) {
 
 func TestDecodeFromText_message_encoding_is_reversible(t *testing.T) {
 	for _, kind := range apperror.KindValues() {
+		if kind == apperror.UnknownError {
+			// Special case: the message is redacted.
+			continue
+		}
+
 		t.Run(kind.String(), func(t *testing.T) {
 			originalErr := apperror.New(kind, errorMessage)
 			decodedErr := encodeAndDecode(originalErr)

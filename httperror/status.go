@@ -9,7 +9,7 @@ import (
 func EncodeKind(kind apperror.Kind) int {
 	switch kind {
 	case apperror.OK:
-		return http.StatusNoContent
+		return http.StatusOK
 	case apperror.ValidationError:
 		return http.StatusBadRequest
 	case apperror.UnauthorizedError:

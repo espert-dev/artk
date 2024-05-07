@@ -16,12 +16,16 @@ func EncodeToText(w http.ResponseWriter, err error) {
 	kind := apperror.KindOf(err)
 	status := EncodeKind(kind)
 
-	var msg string
-	if err != nil {
-		msg = err.Error()
+	switch kind {
+	case apperror.OK:
+		// The only difference compared to just returning is that
+		// the content-type is set.
+		http.Error(w, "", status)
+	case apperror.UnknownError:
+		http.Error(w, "Internal Server Error", status)
+	default:
+		http.Error(w, err.Error(), status)
 	}
-
-	http.Error(w, msg, status)
 }
 
 // DecodeFromText decodes an error from plain text.

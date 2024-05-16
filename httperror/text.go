@@ -11,7 +11,7 @@ import (
 // EncodeToText encodes an error into plain text.
 // No further writes to the ResponseWriter w should happen after this function.
 func EncodeToText(w http.ResponseWriter, err error) {
-	assume.NotNil(w)
+	assume.NotZero(w)
 
 	kind := apperror.KindOf(err)
 	status := EncodeKind(kind)
@@ -30,7 +30,7 @@ func EncodeToText(w http.ResponseWriter, err error) {
 
 // DecodeFromText decodes an error from plain text.
 func DecodeFromText(response *http.Response) error {
-	assume.NotNil(response)
+	assume.NotZero(response)
 
 	kind := DecodeKind(response.StatusCode)
 	if kind == apperror.OK {

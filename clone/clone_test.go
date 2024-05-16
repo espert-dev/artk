@@ -225,11 +225,25 @@ func TestOf_supports_interfaces(t *testing.T) {
 			t.Errorf("expected %v, got %v", v, c)
 		}
 	})
-	t.Run("nested nil interface", func(t *testing.T) {
+	t.Run("nested nil", func(t *testing.T) {
 		type NestedInterface struct {
 			Any any
 		}
 		v := NestedInterface{Any: nil}
+
+		c := clone.Of(v)
+		if v != c {
+			t.Errorf("expected %v, got %v", v, c)
+		}
+	})
+	t.Run("nested nil interface", func(t *testing.T) {
+		type Foo interface {
+			Foo()
+		}
+		type NestedInterface struct {
+			Any any
+		}
+		v := NestedInterface{Any: Foo(nil)}
 
 		c := clone.Of(v)
 		if v != c {

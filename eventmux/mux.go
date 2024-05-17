@@ -2,17 +2,22 @@ package eventmux
 
 import (
 	"context"
+	"sync"
 )
 
 var _ Observer[any] = (&Mux[any]{}).Observe
 
 // Mux is an in-memory event multiplexer.
 type Mux[Event any] struct {
+	mutex     sync.RWMutex
 	observers []Observer[Event]
 }
 
 // Observe and propagate an event to registered observers.
 func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
 	// Observers are notified concurrently.
 	for i := range len(m.observers) {
 		go func(
@@ -37,6 +42,9 @@ func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
 func (m *Mux[Event]) WillNotify(
 	observers ...Observer[Event],
 ) *Mux[Event] {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	m.observers = append(m.observers, observers...)
 
 	// Chaining improves DX.

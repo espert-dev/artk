@@ -3,5 +3,6 @@
 package racechecker
 
 type testingT interface {
+	Helper()
 	Skip(args ...any)
 }

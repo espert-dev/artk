@@ -1,6 +1,7 @@
 package eventmux
 
 import (
+	"artk.dev/clone"
 	"context"
 	"sync"
 )
@@ -20,6 +21,9 @@ func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
 
 	// Observers are notified concurrently.
 	for i := range len(m.observers) {
+		// Trade performance for safety.
+		event := clone.Of(event)
+
 		go func(
 			ctx context.Context,
 			observer Observer[Event],

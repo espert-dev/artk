@@ -1,6 +1,7 @@
 package eventmux
 
 import (
+	"artk.dev/asynctx"
 	"artk.dev/clone"
 	"context"
 	"sync"
@@ -27,6 +28,11 @@ func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
 	numObservers := len(m.observers)
 	m.wg.Add(numObservers)
 
+	// We force the creation of a derived context for safety reasons.
+	// Since we know that this context will not be cancellable, we can
+	// safely share it across all observers.
+	asyncSafeContext := asynctx.From(ctx)
+
 	// Observers are notified concurrently.
 	for i := range numObservers {
 		// Trade performance for safety.
@@ -45,7 +51,7 @@ func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
 			// made available to any middleware. This can be used,
 			// e.g., for logging.
 			_ = observer(ctx, event)
-		}(ctx, m.observers[i], event)
+		}(asyncSafeContext, m.observers[i], event)
 	}
 
 	return nil

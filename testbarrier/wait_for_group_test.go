@@ -27,8 +27,11 @@ func TestWaitForGroup_calls_FailNow_if_timeout_expires(t *testing.T) {
 		}
 
 		go func() {
-			var wg sync.WaitGroup
-			testbarrier.WaitForGroup(fakeT, &wg, time.Nanosecond)
+			// The WaitGroup has a count of 1, but nothing will
+			// decrease it. This guarantees that it will time out.
+			wg := &sync.WaitGroup{}
+			wg.Add(1)
+			testbarrier.WaitForGroup(fakeT, wg, time.Nanosecond)
 		}()
 
 		<-fakeT.onHelper
@@ -37,10 +40,13 @@ func TestWaitForGroup_calls_FailNow_if_timeout_expires(t *testing.T) {
 		success <- struct{}{}
 	}()
 
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
 	select {
 	case <-success:
 		// Hurrah!
-	case <-time.NewTicker(5 * time.Second).C:
+	case <-ticker.C:
 		t.Errorf("property was not satisfied within timeout")
 	}
 }

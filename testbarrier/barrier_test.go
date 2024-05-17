@@ -26,6 +26,8 @@ func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
 		}
 
 		go func() {
+			// Nothing can lift the barrier.
+			// This guarantees that it will time out.
 			barrier := testbarrier.New()
 			barrier.Wait(fakeT, time.Nanosecond)
 		}()
@@ -36,10 +38,13 @@ func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
 		success <- struct{}{}
 	}()
 
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
 	select {
 	case <-success:
 		// Hurrah!
-	case <-time.NewTicker(5 * time.Second).C:
+	case <-ticker.C:
 		t.Errorf("property was not satisfied within timeout")
 	}
 }

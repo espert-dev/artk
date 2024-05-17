@@ -22,6 +22,11 @@ type Mux[Event any] struct {
 
 // Observe and propagate an event to registered observers.
 func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
+	if ctx.Err() != nil {
+		// The context was cancelled: do not call observers.
+		return nil
+	}
+
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 

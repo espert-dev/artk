@@ -223,9 +223,6 @@ func TestMux_observer_contexts_inherit_values(t *testing.T) {
 func TestMux_observer_contexts_do_not_inherit_deadline(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 24*time.Hour)
-	defer cancel()
-
 	var wg sync.WaitGroup
 	mux := eventmux.New[Event]()
 
@@ -240,6 +237,35 @@ func TestMux_observer_contexts_do_not_inherit_deadline(t *testing.T) {
 			return nil
 		})
 	}
+
+	ctx, cancel := context.WithTimeout(context.TODO(), 24*time.Hour)
+	defer cancel()
+
+	if err := mux.Observe(ctx, exampleEvent()); err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	mux.Shutdown(&wg)
+	wg.Wait()
+}
+
+func TestMux_Observe_does_not_notify_if_context_is_cancelled(t *testing.T) {
+	t.Parallel()
+
+	var wg sync.WaitGroup
+	mux := eventmux.New[Event]()
+
+	for range 100 {
+		mux.WillNotify(func(_ context.Context, _ Event) error {
+			t.Error("observer incorrectly notified")
+			return nil
+		})
+	}
+
+	ctx, cancel := context.WithCancel(context.TODO())
+
+	// The context is cancelled from the start.
+	cancel()
 
 	if err := mux.Observe(ctx, exampleEvent()); err != nil {
 		t.Error("unexpected error:", err)

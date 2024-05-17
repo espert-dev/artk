@@ -2,6 +2,7 @@ package eventmux_test
 
 import (
 	"artk.dev/eventmux"
+	"artk.dev/testbarrier"
 	"context"
 	"errors"
 	"strconv"
@@ -42,17 +43,7 @@ func TestMux_all_observers_receive_the_event(t *testing.T) {
 		}
 
 		t.Log("Then, eventually, all observers will be notified")
-		waitCh := make(chan struct{})
-		go func() {
-			wg.Wait()
-			waitCh <- struct{}{}
-		}()
-		select {
-		case <-time.After(5 * time.Second):
-			t.Fatal("Timeout!")
-		case <-waitCh:
-			// Success!
-		}
+		testbarrier.WaitForGroup(t, wg, 5*time.Second)
 
 		t.Log("And they will have received the expected event.")
 		expected := exampleEvent()

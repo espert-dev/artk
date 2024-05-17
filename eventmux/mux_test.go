@@ -107,6 +107,8 @@ func TestMux_WillNotify_and_Observe_are_thread_safe(t *testing.T) {
 }
 
 func TestMux_Observe_deep_copies_events(t *testing.T) {
+	t.Parallel()
+
 	t.Run("slices", func(t *testing.T) {
 		t.Parallel()
 		t.Helper()

@@ -33,7 +33,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.57.2
+          version: v1.58.1
           args: "--help" # Install the tool, but don't run it.
 
       - name: Install gotestsum

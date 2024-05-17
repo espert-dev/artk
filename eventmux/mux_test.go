@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -158,6 +159,38 @@ func assertIsDeepCopy[Event any](t *testing.T, originalEvent Event) {
 	}
 	if same(originalEvent, receivedEvents[1]) {
 		t.Error("The second event is a shallow copy")
+	}
+}
+
+func TestMux_Shutdown_allows_all_tasks_to_terminate(t *testing.T) {
+	t.Parallel()
+
+	mux := eventmux.New[Event]()
+
+	t.Log("Given there are 100 registered observers,")
+	const numObservers = 100
+	var numFinished atomic.Int64
+	for range numObservers {
+		mux.WillNotify(func(_ context.Context, _ Event) error {
+			numFinished.Add(1)
+			return nil
+		})
+	}
+
+	t.Log("And the Mux has observed an event,")
+	err := mux.Observe(context.TODO(), exampleEvent())
+	if err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	t.Log("When the Mux is shut down,")
+	var wg sync.WaitGroup
+	mux.Shutdown(&wg)
+	wg.Wait()
+
+	t.Log("All 100 registered observers finish normally.")
+	if n := numFinished.Load(); n != numObservers {
+		t.Errorf("expected %v, got %v", numObservers, n)
 	}
 }
 

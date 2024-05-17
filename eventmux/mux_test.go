@@ -2,6 +2,7 @@ package eventmux_test
 
 import (
 	"artk.dev/eventmux"
+	"artk.dev/racechecker"
 	"artk.dev/testbarrier"
 	"context"
 	"errors"
@@ -79,6 +80,28 @@ func TestMux_observer_errors_are_not_returned_to_caller(t *testing.T) {
 	err := mux.Observe(context.TODO(), exampleEvent())
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestMux_WillNotify_and_Observe_are_thread_safe(t *testing.T) {
+	t.Parallel()
+	racechecker.Require(t)
+
+	mux := eventmux.New[Event]()
+	for range 100 {
+		go func() {
+			mux.WillNotify(func(_ context.Context, _ Event) error {
+				// The observer is irrelevant, only the
+				// internal state of the Mux matters.
+				return nil
+			})
+		}()
+		go func() {
+			err := mux.Observe(context.TODO(), exampleEvent())
+			if err != nil {
+				t.Error("Unexpected error:", err)
+			}
+		}()
 	}
 }
 

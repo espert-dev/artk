@@ -53,7 +53,7 @@ linters:
     - testableexamples
     - testifylint
     - testpackage
-    - thelper
+    #- thelper  # Too many false positives, no way to ignore.
     - unconvert
     - unused
     - usestdlibvars

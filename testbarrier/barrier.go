@@ -39,9 +39,3 @@ func (b Barrier) Wait(t testingT, d time.Duration) {
 func New() Barrier {
 	return Barrier{ch: make(chan struct{})}
 }
-
-type testingT interface {
-	Error(args ...any)
-	FailNow()
-	Helper()
-}

@@ -2,19 +2,20 @@ package testbarrier_test
 
 import (
 	"artk.dev/testbarrier"
+	"sync"
 	"testing"
 	"time"
 )
 
-func TestBarrier_succeeds_if_lifted_before_timeout_expires(t *testing.T) {
+func TestWaitForGroup_succeeds_if_done_before_timeout_expires(t *testing.T) {
 	t.Parallel()
 
-	barrier := testbarrier.New()
-	go barrier.Lift()
-	barrier.Wait(t, 100*365*24*time.Hour)
+	var wg sync.WaitGroup
+	wg.Wait() // Finishes immediately because the counter is zero.
+	testbarrier.WaitForGroup(t, &wg, 100*365*24*time.Hour)
 }
 
-func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
+func TestWaitForGroup_calls_FailNow_if_timeout_expires(t *testing.T) {
 	t.Parallel()
 
 	success := make(chan struct{})
@@ -26,8 +27,8 @@ func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
 		}
 
 		go func() {
-			barrier := testbarrier.New()
-			barrier.Wait(fakeT, time.Nanosecond)
+			var wg sync.WaitGroup
+			testbarrier.WaitForGroup(fakeT, &wg, time.Nanosecond)
 		}()
 
 		<-fakeT.onHelper

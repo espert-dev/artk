@@ -19,7 +19,7 @@ func (b Barrier) Lift() {
 // Wait for the barrier to lift for up to a duration `d`.
 // If the deadline expires, the test will fail immediately.
 func (b Barrier) Wait(t testingT, d time.Duration) {
-	assume.NotNil(t)
+	assume.NotZero(t)
 
 	t.Helper()
 

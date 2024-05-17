@@ -1,91 +1,51 @@
 package assume_test
 
-import (
-	"artk.dev/assume"
-	"errors"
-	"testing"
+import "testing"
+
+func expectPanic(t *testing.T, expected string, fn func()) {
+	t.Helper()
+
+	defer func(t *testing.T) {
+		t.Helper()
+
+		r := recover()
+		if r == nil {
+			t.Error("Missing expected panic")
+		}
+
+		got, ok := r.(string)
+		if !ok {
+			t.Error("Panic object is not a string")
+		}
+
+		if expected != got {
+			t.Errorf(
+				`Expected message "%v", got "%v"`,
+				expected,
+				got,
+			)
+		}
+	}(t)
+
+	fn()
+}
+
+func expectNoPanic(t *testing.T, fn func()) {
+	t.Helper()
+
+	defer func(t *testing.T) {
+		t.Helper()
+		if r := recover(); r != nil {
+			t.Error("Unexpected panic")
+		}
+	}(t)
+
+	fn()
+}
+
+// Strings for custom formatted messages.
+const (
+	expectedCustomMessage = "value: 42"
+	format                = "value: %v"
+	value                 = 42
 )
-
-func TestEqual(t *testing.T) {
-	t.Run("Do not panic if equal", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Error("Unexpected panic")
-			}
-		}()
-
-		assume.Equal(true, true)
-	})
-	t.Run("Panic if different", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("Missing expected panic")
-			}
-		}()
-
-		assume.Equal(false, true)
-	})
-}
-
-func TestSuccess(t *testing.T) {
-	t.Run("Do not panic if nil", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Error("Unexpected panic")
-			}
-		}()
-
-		assume.Success(nil)
-	})
-	t.Run("Panic if not nil", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("Missing expected panic")
-			}
-		}()
-
-		assume.Success(errors.New("test error"))
-	})
-}
-
-func TestNotNil(t *testing.T) {
-	t.Run("Do not panic if not nil", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Error("Unexpected panic")
-			}
-		}()
-
-		assume.NotNil(struct{}{})
-	})
-	t.Run("Panic if nil", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("Missing expected panic")
-			}
-		}()
-
-		assume.NotNil(nil)
-	})
-}
-
-func TestTrue(t *testing.T) {
-	t.Run("Do not panic if true", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Error("Unexpected panic")
-			}
-		}()
-
-		assume.True(true)
-	})
-	t.Run("Panic if false", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Error("Missing expected panic")
-			}
-		}()
-
-		assume.True(false)
-	})
-}

@@ -194,6 +194,61 @@ func TestMux_Shutdown_allows_all_tasks_to_terminate(t *testing.T) {
 	}
 }
 
+func TestMux_observer_contexts_inherit_values(t *testing.T) {
+	t.Parallel()
+
+	const value = 42
+	ctx := context.WithValue(context.TODO(), key{}, value)
+
+	var wg sync.WaitGroup
+	mux := eventmux.New[Event]()
+
+	for range 100 {
+		mux.WillNotify(func(ctx context.Context, _ Event) error {
+			if ctx.Value(key{}) != 42 {
+				t.Errorf("context value not inherited")
+			}
+			return nil
+		})
+	}
+
+	if err := mux.Observe(ctx, exampleEvent()); err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	mux.Shutdown(&wg)
+	wg.Wait()
+}
+
+func TestMux_observer_contexts_do_not_inherit_deadline(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.TODO(), 24*time.Hour)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	mux := eventmux.New[Event]()
+
+	for range 100 {
+		mux.WillNotify(func(ctx context.Context, _ Event) error {
+			if deadline, ok := ctx.Deadline(); ok {
+				t.Error("unexpected deadline:", deadline)
+			}
+			if err := ctx.Err(); err != nil {
+				t.Error("unexpected error:", err)
+			}
+			return nil
+		})
+	}
+
+	if err := mux.Observe(ctx, exampleEvent()); err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	mux.Shutdown(&wg)
+	wg.Wait()
+}
+
 func exampleEvent() Event {
 	return Event{
 		ID:   expectedID,
@@ -213,3 +268,5 @@ func same(x, y any) bool {
 
 const expectedID = 1234
 const expectedName = "Test Event"
+
+type key struct{}

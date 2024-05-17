@@ -11,7 +11,7 @@ linters:
     - durationcheck
     - errcheck
     - errchkjson
-    - execinquery
+    #- execinquery  # deprecated
     - exportloopref
     - gocognit
     - goconst
@@ -20,7 +20,6 @@ linters:
     - godot
     - godox
     - gofmt
-    - gomnd
     - gomoddirectives
     - gosec
     - gosimple
@@ -33,6 +32,7 @@ linters:
     - makezero
     - mirror
     - misspell
+    - mnd
     - musttag
     - noctx
     - nosprintfhostport

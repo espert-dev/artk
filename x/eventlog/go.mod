@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	artk.dev v0.0.0-20240518144453-90a2302f7385
-	artk.dev/x/testlog v0.0.0-20240518144453-90a2302f7385
+	artk.dev/x/testlog v0.0.0-20240518170417-7686267b825b
 )
 
 require (

@@ -15,3 +15,10 @@ import "context"
 //   - Asynchronous operations must return whether they succeeded.
 //     Brokers may depend on this to retry failed operations.
 type Observer[Event any] func(ctx context.Context, e Event) error
+
+// ContextMiddleware is used to transform the context provided to a function.
+//
+// It exists as an optimization over ObserverMiddleware whenever the value or
+// type of the event is irrelevant, which supports reuse without needlessly
+// depending on the instantiation of generics.
+type ContextMiddleware func(ctx context.Context) context.Context

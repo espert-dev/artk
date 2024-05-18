@@ -278,12 +278,12 @@ func TestMux_Observe_does_not_notify_if_context_is_cancelled(t *testing.T) {
 func TestMux_supports_context_middleware(t *testing.T) {
 	t.Parallel()
 
-	type key struct{}
+	var key struct{}
 	const expected = 42
 
 	t.Log("Given that the middleware will insert a known key-value,")
 	contextMiddleware := func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, key{}, expected)
+		return context.WithValue(ctx, key, expected)
 	}
 
 	t.Log("Then the observer will receive the known key-value")
@@ -292,7 +292,95 @@ func TestMux_supports_context_middleware(t *testing.T) {
 	mux.WithContextMiddleware(contextMiddleware)
 	mux.WillNotify(func(ctx context.Context, _ Event) error {
 		defer barrier.Lift()
-		got, ok := ctx.Value(key{}).(int)
+		got, ok := ctx.Value(key).(int)
+		if !ok {
+			t.Error("expected key-value not found")
+		}
+		if got != expected {
+			t.Errorf("expected %v, got %v", expected, got)
+		}
+		return nil
+	})
+
+	t.Log("When Mux observes an error.")
+	err := mux.Observe(context.TODO(), exampleEvent())
+	if err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	barrier.Wait(t, 5*time.Second)
+}
+
+func TestMux_observer_middleware_can_modify_context(t *testing.T) {
+	t.Parallel()
+
+	var key struct{}
+	const expected = 42
+
+	t.Log("Given that the middleware will insert a known key-value,")
+	observerMiddleware := func(
+		next eventmux.Observer[Event],
+	) eventmux.Observer[Event] {
+		return func(ctx context.Context, e Event) error {
+			return next(context.WithValue(ctx, key, expected), e)
+		}
+	}
+
+	t.Log("Then the observer will receive the known key-value")
+	barrier := testbarrier.New()
+	mux := eventmux.New[Event]()
+	mux.WithObserverMiddleware(observerMiddleware)
+	mux.WillNotify(func(ctx context.Context, _ Event) error {
+		defer barrier.Lift()
+		got, ok := ctx.Value(key).(int)
+		if !ok {
+			t.Error("expected key-value not found")
+		}
+		if got != expected {
+			t.Errorf("expected %v, got %v", expected, got)
+		}
+		return nil
+	})
+
+	t.Log("When Mux observes an error.")
+	err := mux.Observe(context.TODO(), exampleEvent())
+	if err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	barrier.Wait(t, 5*time.Second)
+}
+
+func TestMux_context_middleware_happens_before_observer(t *testing.T) {
+	t.Parallel()
+
+	var key struct{}
+	const original = 13
+	const expected = 42
+
+	t.Logf("Given that the context middleware will insert %v", original)
+	contextMiddleware := func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, key, original)
+	}
+
+	t.Logf("And that the observer middleware will insert %v,", expected)
+	observerMiddleware := func(
+		next eventmux.Observer[Event],
+	) eventmux.Observer[Event] {
+		return func(ctx context.Context, e Event) error {
+			// Overwrites value set by the context middleware.
+			return next(context.WithValue(ctx, key, expected), e)
+		}
+	}
+
+	t.Logf("Then the observer will receive the value %v", expected)
+	barrier := testbarrier.New()
+	mux := eventmux.New[Event]()
+	mux.WithContextMiddleware(contextMiddleware)
+	mux.WithObserverMiddleware(observerMiddleware)
+	mux.WillNotify(func(ctx context.Context, _ Event) error {
+		defer barrier.Lift()
+		got, ok := ctx.Value(key).(int)
 		if !ok {
 			t.Error("expected key-value not found")
 		}

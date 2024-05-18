@@ -31,7 +31,7 @@ jobs:
             x/grpcerror/go.sum
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v1.58.1
           args: "--help" # Install the tool, but don't run it.

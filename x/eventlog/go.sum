@@ -1,0 +1,8 @@
+artk.dev v0.0.0-20240518144453-90a2302f7385 h1:4dNxlxau2VFn7jbAMXqMtfAmznbJxe0WlRU8yBONLn4=
+artk.dev v0.0.0-20240518144453-90a2302f7385/go.mod h1:wW8UqHlrzKeVQGGYdpwUISimvlwLPSFobw/nI2Kt+TE=
+artk.dev/x/testlog v0.0.0-20240518144453-90a2302f7385 h1:9MyD4WRs9KoDBDNx2cbMwmtAt/hHEwhJ8d9JUspD+X8=
+artk.dev/x/testlog v0.0.0-20240518144453-90a2302f7385/go.mod h1:TMXJq01n1bCJHUVxVQVleNXzluiquUbs+ZikwgUS0og=
+github.com/lmittmann/tint v1.0.4 h1:LeYihpJ9hyGvE0w+K2okPTGUdVLfng1+nDNVR4vWISc=
+github.com/lmittmann/tint v1.0.4/go.mod h1:HIS3gSy7qNwGCj+5oRjAutErFBl4BzdQP6cJZ0NfMwE=
+github.com/neilotoole/slogt v1.1.0 h1:c7qE92sq+V0yvCuaxph+RQ2jOKL61c4hqS1Bv9W7FZE=
+github.com/neilotoole/slogt v1.1.0/go.mod h1:RCrGXkPc/hYybNulqQrMHRtvlQ7F6NktNVLuLwk6V+w=

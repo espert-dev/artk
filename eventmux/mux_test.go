@@ -275,6 +275,42 @@ func TestMux_Observe_does_not_notify_if_context_is_cancelled(t *testing.T) {
 	wg.Wait()
 }
 
+func TestMux_supports_context_middleware(t *testing.T) {
+	t.Parallel()
+
+	type key struct{}
+	const expected = 42
+
+	t.Log("Given that the middleware will insert a known key-value,")
+	contextMiddleware := func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, key{}, expected)
+	}
+
+	t.Log("Then the observer will receive the known key-value")
+	barrier := testbarrier.New()
+	mux := eventmux.New[Event]()
+	mux.WithContextMiddleware(contextMiddleware)
+	mux.WillNotify(func(ctx context.Context, _ Event) error {
+		defer barrier.Lift()
+		got, ok := ctx.Value(key{}).(int)
+		if !ok {
+			t.Error("expected key-value not found")
+		}
+		if got != expected {
+			t.Errorf("expected %v, got %v", expected, got)
+		}
+		return nil
+	})
+
+	t.Log("When Mux observes an error.")
+	err := mux.Observe(context.TODO(), exampleEvent())
+	if err != nil {
+		t.Error("unexpected error:", err)
+	}
+
+	barrier.Wait(t, 5*time.Second)
+}
+
 func exampleEvent() Event {
 	return Event{
 		ID:   expectedID,

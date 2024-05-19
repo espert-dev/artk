@@ -17,7 +17,7 @@ func TestLoggerMiddleware_calls_next_on_success(t *testing.T) {
 	}
 
 	logger := testlog.New(t)
-	observer := eventlog.LoggerMiddleware[Event](logger)(next)
+	observer := eventlog.Logger[Event](logger)(next)
 	_ = observer(context.TODO(), exampleEvent())
 
 	if numTimesNextCalled != 1 {
@@ -34,7 +34,7 @@ func TestLoggerMiddleware_calls_next_on_failure(t *testing.T) {
 	}
 
 	logger := testlog.New(t)
-	observer := eventlog.LoggerMiddleware[Event](logger)(next)
+	observer := eventlog.Logger[Event](logger)(next)
 	_ = observer(context.TODO(), exampleEvent())
 
 	if numTimesNextCalled != 1 {

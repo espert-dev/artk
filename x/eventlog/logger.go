@@ -7,10 +7,10 @@ import (
 	"log/slog"
 )
 
-func LoggerMiddleware[Event any](
+func Logger[Event any](
 	logger *slog.Logger,
 ) func(eventmux.Observer[Event]) eventmux.Observer[Event] {
-	// Pre-generate the event type at initialization type, avoiding its
+	// Pre-generate the event type at initialization time, avoiding its
 	// re-computation on every event.
 	var example Event
 	eventType := fmt.Sprintf("%T", example)

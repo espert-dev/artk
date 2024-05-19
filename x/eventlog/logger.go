@@ -47,6 +47,6 @@ func Logger[Event any](
 	}
 }
 
-const eventTypeKey = "event"
-const eventKey = "eventType"
+const eventTypeKey = "eventType"
+const eventKey = "event"
 const errorKey = "error"

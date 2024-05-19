@@ -22,7 +22,7 @@ func Logger[Event any](
 			logger.LogAttrs(
 				ctx,
 				slog.LevelDebug,
-				"eventmux: notifying observer",
+				"eventmux: notifying",
 			)
 
 			err := next(ctx, e)

@@ -8,6 +8,8 @@ artk.dev/x/testlog v0.0.0-20240519003104-9854ed7cb8b6 h1:pXMjx/9ZmjdwP8jwTdqdrUm
 artk.dev/x/testlog v0.0.0-20240519003104-9854ed7cb8b6/go.mod h1:TMXJq01n1bCJHUVxVQVleNXzluiquUbs+ZikwgUS0og=
 artk.dev/x/testlog v0.0.0-20240519071707-832e8af34bd3 h1:nh5COTgeRcSSyrsh1aJFpWmlgbpGpJ7U/jbdfQFioV8=
 artk.dev/x/testlog v0.0.0-20240519071707-832e8af34bd3/go.mod h1:TMXJq01n1bCJHUVxVQVleNXzluiquUbs+ZikwgUS0og=
+artk.dev/x/testlog v0.0.0-20240519085914-d844fbff5592 h1:qhMzTgskoZSouL/cMhorHYlY9gUYX62Qq3nK53WJ18A=
+artk.dev/x/testlog v0.0.0-20240519085914-d844fbff5592/go.mod h1:TMXJq01n1bCJHUVxVQVleNXzluiquUbs+ZikwgUS0og=
 github.com/lmittmann/tint v1.0.4 h1:LeYihpJ9hyGvE0w+K2okPTGUdVLfng1+nDNVR4vWISc=
 github.com/lmittmann/tint v1.0.4/go.mod h1:HIS3gSy7qNwGCj+5oRjAutErFBl4BzdQP6cJZ0NfMwE=
 github.com/neilotoole/slogt v1.1.0 h1:c7qE92sq+V0yvCuaxph+RQ2jOKL61c4hqS1Bv9W7FZE=

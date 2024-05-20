@@ -6,9 +6,14 @@ on:
   push:
 
 permissions:
-  contents: read
+  contents: write
   actions: read
   checks: write
+
+# Never cancel builds in main because it could disrupt releases.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
 
@@ -28,7 +33,9 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: |
             go.sum
+            x/eventlog/go.sum
             x/grpcerror/go.sum
+            x/testlog/go.sum
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -49,6 +56,14 @@ jobs:
 
       - name: Build, test, and vet
         run: ./ok
+
+      - name: Validate release tags
+        if: github.ref != 'refs/heads/main'
+        run: ./release-tags.sh verify
+
+      - name: Create release tags
+        if: github.ref == 'refs/heads/main'
+        run: ./release-tags.sh create && git push --tags
 
       - name: Test report
         uses: dorny/test-reporter@v1

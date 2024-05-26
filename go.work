@@ -4,5 +4,6 @@ use (
 	.
 	./x/eventlog
 	./x/grpcerror
+	./x/htmx
 	./x/testlog
 )

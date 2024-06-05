@@ -6,14 +6,14 @@
 package typetraits
 
 // NoCopy can be embedded or nested into a struct to protect against copying.
-// Any copy will be flagged by the copylocks analysis in go vet.
+// Copy attempts will be flagged by the copylocks analysis in go vet.
 //
 // The size of this struct is guaranteed to be zero.
 //
 // Example:
 //
 //	type T struct {
-//		typetraits.NoCopy
+//		_ typetraits.NoCopy
 //	}
 //
 //	x := T{} // The initial assignment is OK.
@@ -34,14 +34,14 @@ func (n *noCopy) Unlock() {
 }
 
 // NoCompare can be embedded or nested into a struct to prevent comparison.
-// Any comparison will cause a compilation error.
+// Comparison attempts will cause a compilation error.
 //
 // The size of this struct is guaranteed to be zero.
 //
 // Example:
 //
 //	type T struct {
-//		typetraits.NoCompare
+//		_ typetraits.NoCompare
 //	}
 //
 //	T{} == T{} // Comparison: compilation error!

@@ -387,7 +387,7 @@ func testSlice[T comparable](t *testing.T, slice []T) {
 	t.Run(name, func(t *testing.T) {
 		c := clone.Of(slice)
 
-		if slice == nil && c != nil || slice != nil && c == nil {
+		if (slice == nil) != (c == nil) {
 			t.Errorf("nil not preserved")
 		}
 		if len(c) != len(slice) {

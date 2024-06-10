@@ -3,8 +3,8 @@ module artk.dev/x/eventlog
 go 1.22.0
 
 require (
-	artk.dev v0.1.0
-	artk.dev/x/testlog v0.1.0
+	artk.dev v0.2.0
+	artk.dev/x/testlog v0.2.0
 )
 
 require (

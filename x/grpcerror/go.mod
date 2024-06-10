@@ -3,7 +3,7 @@ module artk.dev/x/grpcerror
 go 1.22.0
 
 require (
-	artk.dev v0.1.0
+	artk.dev v0.2.0
 	google.golang.org/grpc v1.64.0
 )
 

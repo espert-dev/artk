@@ -4,7 +4,6 @@ import (
 	"artk.dev/apperror"
 	"artk.dev/clone"
 	"context"
-	"errors"
 	"sync"
 )
 
@@ -172,9 +171,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Delete(
 
 func (r *InMemoryCrudRepository[A, I, S]) NotFound(id I) error {
 	if constructor := r.Errors.NotFound; constructor != nil {
-		// Wrap pre-existing error to prevent string interpolation.
-		err := errors.New(constructor(id))
-		return apperror.AsNotFound(err)
+		return apperror.NotFound(constructor(id))
 	}
 
 	return apperror.NotFoundf("not found: %v", id)
@@ -182,9 +179,7 @@ func (r *InMemoryCrudRepository[A, I, S]) NotFound(id I) error {
 
 func (r *InMemoryCrudRepository[A, I, S]) AlreadyExists(id I) error {
 	if constructor := r.Errors.AlreadyExists; constructor != nil {
-		// Wrap pre-existing error to prevent string interpolation.
-		err := errors.New(constructor(id))
-		return apperror.AsConflict(err)
+		return apperror.Conflict(constructor(id))
 	}
 
 	return apperror.Conflictf("already exists: %v", id)

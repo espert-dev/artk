@@ -18,7 +18,12 @@ func (e forbiddenError) Kind() Kind {
 }
 
 // Forbidden creates a new forbidden error.
-func Forbidden(msg string, a ...any) error {
+func Forbidden(msg string) error {
+	return forbiddenError{error: errors.New(msg)}
+}
+
+// Forbiddenf creates a new forbidden error.
+func Forbiddenf(msg string, a ...any) error {
 	return forbiddenError{error: fmt.Errorf(msg, a...)}
 }
 

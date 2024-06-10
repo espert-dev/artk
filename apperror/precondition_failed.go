@@ -18,7 +18,12 @@ func (e preconditionFailedError) Kind() Kind {
 }
 
 // PreconditionFailed creates a new precondition failed error.
-func PreconditionFailed(msg string, a ...any) error {
+func PreconditionFailed(msg string) error {
+	return preconditionFailedError{error: errors.New(msg)}
+}
+
+// PreconditionFailedf creates a new precondition failed error.
+func PreconditionFailedf(msg string, a ...any) error {
 	return preconditionFailedError{error: fmt.Errorf(msg, a...)}
 }
 

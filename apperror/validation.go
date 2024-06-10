@@ -18,7 +18,12 @@ func (e validationError) Kind() Kind {
 }
 
 // Validation creates a new validation error.
-func Validation(msg string, a ...any) error {
+func Validation(msg string) error {
+	return validationError{error: errors.New(msg)}
+}
+
+// Validationf creates a new validation error.
+func Validationf(msg string, a ...any) error {
 	return validationError{error: fmt.Errorf(msg, a...)}
 }
 

@@ -18,7 +18,12 @@ func (e notFoundError) Kind() Kind {
 }
 
 // NotFound creates a new not found error.
-func NotFound(msg string, a ...any) error {
+func NotFound(msg string) error {
+	return notFoundError{error: errors.New(msg)}
+}
+
+// NotFoundf creates a new not found error.
+func NotFoundf(msg string, a ...any) error {
 	return notFoundError{error: fmt.Errorf(msg, a...)}
 }
 

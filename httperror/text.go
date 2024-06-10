@@ -39,7 +39,7 @@ func DecodeFromText(response *http.Response) error {
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return apperror.Unknown("cannot parse HTTP error: %w", err)
+		return apperror.Unknownf("cannot parse HTTP error: %w", err)
 	}
 
 	// The http.Error used in encoding adds an extra newline. Remove it.

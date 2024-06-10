@@ -18,7 +18,12 @@ func (e timeoutError) Kind() Kind {
 }
 
 // Timeout creates a new timeout error.
-func Timeout(msg string, a ...any) error {
+func Timeout(msg string) error {
+	return timeoutError{error: errors.New(msg)}
+}
+
+// Timeoutf creates a new timeout error.
+func Timeoutf(msg string, a ...any) error {
 	return timeoutError{error: fmt.Errorf(msg, a...)}
 }
 

@@ -15,7 +15,7 @@ func Example_retrying_temporary_failures() {
 	operation := func() (int, error) {
 		i++
 		if i < 3 {
-			return i, apperror.Timeout("timed out (%v)", i)
+			return i, apperror.Timeoutf("timed out (%v)", i)
 		}
 
 		return i, nil
@@ -56,7 +56,7 @@ func Example_retrying_temporary_failures() {
 func Example_ignoring_an_already_deleted_item() {
 	deleteItem := func(x int) error {
 		if x == 2 {
-			return apperror.NotFound("not found: %v", x)
+			return apperror.NotFoundf("not found: %v", x)
 		}
 
 		return nil
@@ -146,10 +146,11 @@ func Example_checking_multiple_error_kinds_with_if_and_switch() {
 }
 
 type testCase struct {
-	kind        apperror.Kind
-	constructor func(string, ...any) error
-	wrapper     func(error) error
-	matcher     func(error) bool
+	kind              apperror.Kind
+	stringConstructor func(string) error
+	formatConstructor func(string, ...any) error
+	wrapper           func(error) error
+	matcher           func(error) bool
 }
 
 func (tc testCase) Name() string {
@@ -158,58 +159,67 @@ func (tc testCase) Name() string {
 
 var testCases = []testCase{
 	{
-		kind:        apperror.ValidationError,
-		constructor: apperror.Validation,
-		wrapper:     apperror.AsValidation,
-		matcher:     apperror.IsValidation,
+		kind:              apperror.ValidationError,
+		stringConstructor: apperror.Validation,
+		formatConstructor: apperror.Validationf,
+		wrapper:           apperror.AsValidation,
+		matcher:           apperror.IsValidation,
 	},
 	{
-		kind:        apperror.UnauthorizedError,
-		constructor: apperror.Unauthorized,
-		wrapper:     apperror.AsUnauthorized,
-		matcher:     apperror.IsUnauthorized,
+		kind:              apperror.UnauthorizedError,
+		stringConstructor: apperror.Unauthorized,
+		formatConstructor: apperror.Unauthorizedf,
+		wrapper:           apperror.AsUnauthorized,
+		matcher:           apperror.IsUnauthorized,
 	},
 	{
-		kind:        apperror.ForbiddenError,
-		constructor: apperror.Forbidden,
-		wrapper:     apperror.AsForbidden,
-		matcher:     apperror.IsForbidden,
+		kind:              apperror.ForbiddenError,
+		stringConstructor: apperror.Forbidden,
+		formatConstructor: apperror.Forbiddenf,
+		wrapper:           apperror.AsForbidden,
+		matcher:           apperror.IsForbidden,
 	},
 	{
-		kind:        apperror.NotFoundError,
-		constructor: apperror.NotFound,
-		wrapper:     apperror.AsNotFound,
-		matcher:     apperror.IsNotFound,
+		kind:              apperror.NotFoundError,
+		stringConstructor: apperror.NotFound,
+		formatConstructor: apperror.NotFoundf,
+		wrapper:           apperror.AsNotFound,
+		matcher:           apperror.IsNotFound,
 	},
 	{
-		kind:        apperror.ConflictError,
-		constructor: apperror.Conflict,
-		wrapper:     apperror.AsConflict,
-		matcher:     apperror.IsConflict,
+		kind:              apperror.ConflictError,
+		stringConstructor: apperror.Conflict,
+		formatConstructor: apperror.Conflictf,
+		wrapper:           apperror.AsConflict,
+		matcher:           apperror.IsConflict,
 	},
 	{
-		kind:        apperror.PreconditionFailedError,
-		constructor: apperror.PreconditionFailed,
-		wrapper:     apperror.AsPreconditionFailed,
-		matcher:     apperror.IsPreconditionFailed,
+		kind:              apperror.PreconditionFailedError,
+		stringConstructor: apperror.PreconditionFailed,
+		formatConstructor: apperror.PreconditionFailedf,
+		wrapper:           apperror.AsPreconditionFailed,
+		matcher:           apperror.IsPreconditionFailed,
 	},
 	{
-		kind:        apperror.TooManyRequestsError,
-		constructor: apperror.TooManyRequests,
-		wrapper:     apperror.AsTooManyRequests,
-		matcher:     apperror.IsTooManyRequests,
+		kind:              apperror.TooManyRequestsError,
+		stringConstructor: apperror.TooManyRequests,
+		formatConstructor: apperror.TooManyRequestsf,
+		wrapper:           apperror.AsTooManyRequests,
+		matcher:           apperror.IsTooManyRequests,
 	},
 	{
-		kind:        apperror.UnknownError,
-		constructor: apperror.Unknown,
-		wrapper:     apperror.AsUnknown,
-		matcher:     apperror.IsUnknown,
+		kind:              apperror.UnknownError,
+		stringConstructor: apperror.Unknown,
+		formatConstructor: apperror.Unknownf,
+		wrapper:           apperror.AsUnknown,
+		matcher:           apperror.IsUnknown,
 	},
 	{
-		kind:        apperror.TimeoutError,
-		constructor: apperror.Timeout,
-		wrapper:     apperror.AsTimeout,
-		matcher:     apperror.IsTimeout,
+		kind:              apperror.TimeoutError,
+		stringConstructor: apperror.Timeout,
+		formatConstructor: apperror.Timeoutf,
+		wrapper:           apperror.AsTimeout,
+		matcher:           apperror.IsTimeout,
 	},
 }
 
@@ -341,28 +351,56 @@ func TestNew_returns_nil_for_OK(t *testing.T) {
 	}
 }
 
-func Test_constructors_accept_empty_messages(t *testing.T) {
+func Test_string_constructors_accept_empty_messages(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name(), func(t *testing.T) {
-			err := tc.constructor("")
+			err := tc.stringConstructor("")
 			assertEmptyMessage(t, err)
 		})
 	}
 }
 
-func Test_constructors_honor_kind(t *testing.T) {
+func Test_format_constructors_accept_empty_messages(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name(), func(t *testing.T) {
-			err := tc.constructor(message)
+			err := tc.formatConstructor("")
+			assertEmptyMessage(t, err)
+		})
+	}
+}
+
+func Test_string_constructors_honor_kind(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run(tc.Name(), func(t *testing.T) {
+			err := tc.stringConstructor(message)
 			assertErrorKind(t, err, tc.kind, tc.matcher)
 		})
 	}
 }
 
-func Test_constructors_honor_message(t *testing.T) {
+func Test_format_constructors_honor_kind(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name(), func(t *testing.T) {
-			err := tc.constructor("%v error", "test")
+			err := tc.formatConstructor(message)
+			assertErrorKind(t, err, tc.kind, tc.matcher)
+		})
+	}
+}
+
+func Test_string_constructors_honor_message(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run(tc.Name(), func(t *testing.T) {
+			err := tc.stringConstructor("test error")
+			assertErrorKind(t, err, tc.kind, tc.matcher)
+			assertTestMessage(t, err)
+		})
+	}
+}
+
+func Test_format_constructors_honor_message(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run(tc.Name(), func(t *testing.T) {
+			err := tc.formatConstructor("%v error", "test")
 			assertErrorKind(t, err, tc.kind, tc.matcher)
 			assertTestMessage(t, err)
 		})

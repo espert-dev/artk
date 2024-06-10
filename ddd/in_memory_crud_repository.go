@@ -177,7 +177,7 @@ func (r *InMemoryCrudRepository[A, I, S]) NotFound(id I) error {
 		return apperror.AsNotFound(err)
 	}
 
-	return apperror.NotFound("not found: %v", id)
+	return apperror.NotFoundf("not found: %v", id)
 }
 
 func (r *InMemoryCrudRepository[A, I, S]) AlreadyExists(id I) error {
@@ -187,5 +187,5 @@ func (r *InMemoryCrudRepository[A, I, S]) AlreadyExists(id I) error {
 		return apperror.AsConflict(err)
 	}
 
-	return apperror.Conflict("already exists: %v", id)
+	return apperror.Conflictf("already exists: %v", id)
 }

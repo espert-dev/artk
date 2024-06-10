@@ -18,7 +18,12 @@ func (e tooManyRequestsError) Kind() Kind {
 }
 
 // TooManyRequests creates a new too many requests error.
-func TooManyRequests(msg string, a ...any) error {
+func TooManyRequests(msg string) error {
+	return tooManyRequestsError{error: errors.New(msg)}
+}
+
+// TooManyRequestsf creates a new too many requests error.
+func TooManyRequestsf(msg string, a ...any) error {
 	return tooManyRequestsError{error: fmt.Errorf(msg, a...)}
 }
 

@@ -31,7 +31,7 @@ func Decode(err error) error {
 	s, ok := status.FromError(err)
 	if !ok {
 		// Will be handled as an unknown error.
-		return apperror.Unknown("cannot parse gRPC error: %w", err)
+		return apperror.Unknownf("cannot parse gRPC error: %w", err)
 	}
 
 	kind := DecodeKind(s.Code())

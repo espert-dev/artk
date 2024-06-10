@@ -18,7 +18,12 @@ func (e conflictError) Kind() Kind {
 }
 
 // Conflict creates a new conflict error.
-func Conflict(msg string, a ...any) error {
+func Conflict(msg string) error {
+	return conflictError{error: errors.New(msg)}
+}
+
+// Conflictf creates a new conflict error.
+func Conflictf(msg string, a ...any) error {
 	return conflictError{error: fmt.Errorf(msg, a...)}
 }
 

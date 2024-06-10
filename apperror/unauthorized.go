@@ -18,7 +18,12 @@ func (e unauthorizedError) Kind() Kind {
 }
 
 // Unauthorized creates a new unauthorized error.
-func Unauthorized(msg string, a ...any) error {
+func Unauthorized(msg string) error {
+	return unauthorizedError{error: errors.New(msg)}
+}
+
+// Unauthorizedf creates a new unauthorized error.
+func Unauthorizedf(msg string, a ...any) error {
 	return unauthorizedError{error: fmt.Errorf(msg, a...)}
 }
 

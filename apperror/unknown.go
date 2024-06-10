@@ -1,6 +1,9 @@
 package apperror
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // unknownError is not a semantic error, but it implements the method Kind.
 // This allows for faster checks in some places.
@@ -15,9 +18,18 @@ func (e unknownError) Kind() Kind {
 // Unknown returns a semantic error of UnknownError.
 //
 // While any non-semantic error will be detected as an unknown error, the
-// error returned by this constructor implements the kinder interface and
+// error returned by this stringConstructor implements the kinder interface and
 // can be checked faster.
-func Unknown(msg string, a ...any) error {
+func Unknown(msg string) error {
+	return unknownError{error: errors.New(msg)}
+}
+
+// Unknownf returns a semantic error of UnknownError.
+//
+// While any non-semantic error will be detected as an unknown error, the
+// error returned by this stringConstructor implements the kinder interface and
+// can be checked faster.
+func Unknownf(msg string, a ...any) error {
 	return unknownError{error: fmt.Errorf(msg, a...)}
 }
 

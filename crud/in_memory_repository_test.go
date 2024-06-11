@@ -1,7 +1,8 @@
-package ddd_test
+package crud_test
 
 import (
 	"artk.dev/apperror"
+	"artk.dev/crud"
 	"artk.dev/ddd"
 	"context"
 	"errors"
@@ -57,13 +58,13 @@ func (s EntitySerialization) Deserialize() *Entity {
 }
 
 type EntityRepository interface {
-	ddd.CrudRepository[*Entity, int64, EntitySerialization]
+	crud.Repository[*Entity, int64, EntitySerialization]
 }
 
 var _ EntityRepository = &InMemoryEntityRepository{}
 
 type InMemoryEntityRepository struct {
-	ddd.InMemoryCrudRepository[*Entity, int64, EntitySerialization]
+	crud.InMemoryRepository[*Entity, int64, EntitySerialization]
 }
 
 func NewInMemoryEntityRepository() *InMemoryEntityRepository {

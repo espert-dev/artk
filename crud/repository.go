@@ -1,12 +1,15 @@
-package ddd
+package crud
 
-import "context"
+import (
+	"artk.dev/ddd"
+	"context"
+)
 
-// CrudRepository defines the basic interface of a CRUD repository.
-type CrudRepository[
-	A AggregateRoot[I, S],
+// Repository defines the basic interface of a CRUD repository.
+type Repository[
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] interface {
 	Getter[A, I, S]
 	Inserter[A, I, S]
@@ -17,9 +20,9 @@ type CrudRepository[
 
 // Getter abstracts getting an entity by ID from a repository.
 type Getter[
-	A AggregateRoot[I, S],
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] interface {
 	// Get returns the entity with the specified ID.
 	// If none is found, it returns an apperror.NotFound error.
@@ -28,9 +31,9 @@ type Getter[
 
 // Inserter abstracts inserting a new entity into a repository.
 type Inserter[
-	A AggregateRoot[I, S],
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] interface {
 	// Insert a new entity into the repository.
 	// If there is already a value with the same ID,
@@ -40,9 +43,9 @@ type Inserter[
 
 // Updater abstracts updating an entity already present in a repository.
 type Updater[
-	A AggregateRoot[I, S],
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] interface {
 	// Update an entity already present in the repository.
 	// If none is found, it returns an apperror.NotFound error.
@@ -52,9 +55,9 @@ type Updater[
 // Upserter abstracts inserting a value (if it is not already present in the
 // repository) or updating it (if it is already present).
 type Upserter[
-	A AggregateRoot[I, S],
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] interface {
 	// Upsert does one of two things:
 	//   - If the entity with the specified ID does not exist,
@@ -70,9 +73,9 @@ type Upserter[
 
 // Deleter abstracts deleting an entity from the repository.
 type Deleter[
-	A AggregateRoot[I, S],
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] interface {
 	// Delete the entity with the given ID from the repository.
 	// If none is found, it returns an apperror.NotFound error.

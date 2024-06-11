@@ -1,21 +1,22 @@
-package ddd
+package crud
 
 import (
 	"artk.dev/apperror"
 	"artk.dev/clone"
+	"artk.dev/ddd"
 	"context"
 	"sync"
 )
 
-// InMemoryCrudRepository provides a generic CRUD repository implementation
+// InMemoryRepository provides a generic CRUD repository implementation
 // for any aggregate root. Mainly meant to be used in in-memory databases for
 // tests and prototyping.
 //
-// Implements CrudRepository.
-type InMemoryCrudRepository[
-	A AggregateRoot[I, S],
+// Implements Repository.
+type InMemoryRepository[
+	A ddd.AggregateRoot[I, S],
 	I comparable,
-	S Serialization[A],
+	S ddd.Serialization[A],
 ] struct {
 	Mutex          sync.RWMutex
 	Serializations map[I]S
@@ -34,7 +35,7 @@ type InMemoryCrudRepository[
 
 // Reset (re-)initializes the repository.
 // It must be called before other methods.
-func (r *InMemoryCrudRepository[A, I, S]) Reset() {
+func (r *InMemoryRepository[A, I, S]) Reset() {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
@@ -45,7 +46,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Reset() {
 // If none is found, it returns an apperror.NotFound error.
 //
 // Provides Getter.
-func (r *InMemoryCrudRepository[A, I, S]) Get(
+func (r *InMemoryRepository[A, I, S]) Get(
 	_ context.Context,
 	id I,
 ) (A, error) {
@@ -68,7 +69,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Get(
 // it returns an apperror.Conflict error.
 //
 // Provides Inserter.
-func (r *InMemoryCrudRepository[A, I, S]) Insert(
+func (r *InMemoryRepository[A, I, S]) Insert(
 	_ context.Context,
 	item A,
 ) error {
@@ -90,7 +91,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Insert(
 // If none is found, it returns an apperror.NotFound error.
 //
 // Provides Updater.
-func (r *InMemoryCrudRepository[A, I, S]) Update(
+func (r *InMemoryRepository[A, I, S]) Update(
 	_ context.Context,
 	id I,
 	update func(x A) error,
@@ -122,7 +123,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Update(
 //     it updates the entity using the provided update function.
 //
 // Provides Upserter.
-func (r *InMemoryCrudRepository[A, I, S]) Upsert(
+func (r *InMemoryRepository[A, I, S]) Upsert(
 	_ context.Context,
 	id I,
 	insert func() (A, error),
@@ -154,7 +155,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Upsert(
 // If none is found, it returns an apperror.NotFound error.
 //
 // Provides Deleter.
-func (r *InMemoryCrudRepository[A, I, S]) Delete(
+func (r *InMemoryRepository[A, I, S]) Delete(
 	_ context.Context,
 	id I,
 ) error {
@@ -169,7 +170,7 @@ func (r *InMemoryCrudRepository[A, I, S]) Delete(
 	return nil
 }
 
-func (r *InMemoryCrudRepository[A, I, S]) NotFound(id I) error {
+func (r *InMemoryRepository[A, I, S]) NotFound(id I) error {
 	if constructor := r.Errors.NotFound; constructor != nil {
 		return apperror.NotFound(constructor(id))
 	}
@@ -177,7 +178,7 @@ func (r *InMemoryCrudRepository[A, I, S]) NotFound(id I) error {
 	return apperror.NotFoundf("not found: %v", id)
 }
 
-func (r *InMemoryCrudRepository[A, I, S]) AlreadyExists(id I) error {
+func (r *InMemoryRepository[A, I, S]) AlreadyExists(id I) error {
 	if constructor := r.Errors.AlreadyExists; constructor != nil {
 		return apperror.Conflict(constructor(id))
 	}

@@ -6,7 +6,7 @@
 //
 // # Nil
 //
-// Detecting nil is a bit of a mess in go because of nil interfaces.
+// Detecting nil is a bit of a mess in Go because of nil interfaces.
 // We have decided to avoid generic predicates such as NotNil in favour
 // of the much less error-prone NotZero, NotNilSlice, NotNilMap, etc.
 // These functions use generics to convey the narrow type instead of any,

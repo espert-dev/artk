@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	artk.dev v0.2.0
-	google.golang.org/grpc v1.66.0
+	google.golang.org/grpc v1.66.1
 )
 
 require (

@@ -1,7 +1,7 @@
-package eventmux_test
+package event_test
 
 import (
-	"artk.dev/eventmux"
+	"artk.dev/event"
 	"artk.dev/testbarrier"
 	"context"
 	"reflect"
@@ -17,7 +17,7 @@ func assertIsDeepCopy[Event any](t *testing.T, originalEvent Event) {
 	wg.Add(numObservers)
 
 	t.Log("Given that there are two observers,")
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 	for i := range receivedEvents {
 		mux.WillNotify(func(_ context.Context, e Event) error {
 			defer wg.Done()

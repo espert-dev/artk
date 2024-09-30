@@ -1,4 +1,4 @@
-package eventmux
+package event
 
 import "context"
 
@@ -10,7 +10,7 @@ import "context"
 // Example:
 //
 //	// Construction.
-//	h.listener = eventmux.None[MyEvent]
+//	h.listener = event.None[MyEvent]
 //
 //	// Usage (no need to check if `listener` is nil).
 //	h.listener(ctx, e)

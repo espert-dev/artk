@@ -1,4 +1,4 @@
-package eventmux
+package event
 
 import "context"
 

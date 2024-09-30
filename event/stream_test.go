@@ -368,9 +368,9 @@ func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
 	stream := event.NewStream[Event](queueSize)
 
 	var numEventsObserved int
-	barrier := make(chan struct{})
+	barrier := testbarrier.New()
 	stream.WillNotify(func(_ context.Context, _ Event) error {
-		<-barrier
+		barrier.Wait(t, 5*time.Second)
 		numEventsObserved++
 		return nil
 	})
@@ -388,8 +388,8 @@ func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
 		}
 	}
 
-	// The barrier is not released all events have been notified.
-	close(barrier)
+	// The barrier is not released until the last event.
+	barrier.Lift()
 
 	// Shutdown the broker to ensure exhaustive processing.
 	var wg sync.WaitGroup

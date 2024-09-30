@@ -13,7 +13,7 @@ type Barrier struct {
 
 // Lift the barrier. Must be called when the event happens.
 func (b Barrier) Lift() {
-	b.ch <- struct{}{}
+	close(b.ch)
 }
 
 // Wait for the barrier to lift for up to a duration `d`.

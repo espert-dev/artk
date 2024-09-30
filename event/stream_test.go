@@ -364,7 +364,7 @@ func TestStream_context_middleware_happens_before_observer(t *testing.T) {
 }
 
 func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
-	const queueSize = 1
+	const queueSize = 0
 	stream := event.NewStream[Event](queueSize)
 
 	var numEventsObserved int
@@ -375,16 +375,14 @@ func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
 		return nil
 	})
 
-	for _, e := range []Event{
-		{
-			ID:   0,
-			Name: "First",
-		},
-		{
-			ID:   1,
-			Name: "Second",
-		},
-	} {
+	// Just give a big enough number that we can be confident about
+	// the message dropping behaviour.
+	const excessAmount = 100
+	for i := range queueSize + excessAmount {
+		e := Event{
+			ID:   i,
+			Name: "test",
+		}
 		if err := stream.Observe(context.TODO(), e); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -398,7 +396,15 @@ func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
 	stream.Shutdown(&wg)
 	wg.Wait()
 
-	if expected := queueSize; expected != numEventsObserved {
-		t.Errorf("expected %v, got %v", expected, numEventsObserved)
+	// The special behaviour of a channel of size zero means that we can
+	// only guarantee that the observed events will be either queueSize
+	// or (queueSize+1).
+	if numEventsObserved != queueSize && numEventsObserved != queueSize+1 {
+		t.Errorf(
+			"expected %v or %v, got %v",
+			queueSize,
+			queueSize+1,
+			numEventsObserved,
+		)
 	}
 }

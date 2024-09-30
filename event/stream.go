@@ -163,8 +163,8 @@ func (s *Stream[Event]) stopEventPropagation() {
 // NewStream creates a Stream with the specified maximum queue size.
 func NewStream[Event any](queueSize int32) *Stream[Event] {
 	assume.Truef(
-		queueSize > 0,
-		"queue size must be positive (was %v)",
+		queueSize >= 0,
+		"queue size cannot be negative (was %v)",
 		queueSize,
 	)
 

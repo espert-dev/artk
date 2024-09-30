@@ -48,3 +48,14 @@ func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
 		t.Errorf("property was not satisfied within timeout")
 	}
 }
+
+func TestBarrier_Wait_never_blocks_after_Lift(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	go barrier.Lift()
+
+	for range 100 {
+		barrier.Wait(t, 100*365*24*time.Hour)
+	}
+}

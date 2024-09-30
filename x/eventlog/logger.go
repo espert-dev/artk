@@ -1,7 +1,7 @@
 package eventlog
 
 import (
-	"artk.dev/eventmux"
+	"artk.dev/event"
 	"context"
 	"fmt"
 	"log/slog"
@@ -9,20 +9,20 @@ import (
 
 func Logger[Event any](
 	logger *slog.Logger,
-) func(eventmux.Observer[Event]) eventmux.Observer[Event] {
+) func(event.Observer[Event]) event.Observer[Event] {
 	// Pre-generate the event type at initialization time, avoiding its
 	// re-computation on every event.
 	var example Event
 	eventType := fmt.Sprintf("%T", example)
 	logger = logger.With(slog.String(eventTypeKey, eventType))
 
-	return func(next eventmux.Observer[Event]) eventmux.Observer[Event] {
+	return func(next event.Observer[Event]) event.Observer[Event] {
 		return func(ctx context.Context, e Event) error {
 			logger = logger.With(slog.Any(eventKey, e))
 			logger.LogAttrs(
 				ctx,
 				slog.LevelDebug,
-				"eventmux: notifying",
+				"event handler: notifying",
 			)
 
 			err := next(ctx, e)
@@ -30,13 +30,13 @@ func Logger[Event any](
 				logger.LogAttrs(
 					ctx,
 					slog.LevelDebug,
-					"eventmux: success",
+					"event handler: success",
 				)
 			} else {
 				logger.LogAttrs(
 					ctx,
 					slog.LevelError,
-					"eventmux: failure",
+					"event handler: failure",
 					slog.String(errorKey, err.Error()),
 				)
 			}

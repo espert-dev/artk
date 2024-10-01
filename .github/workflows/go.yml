@@ -70,6 +70,8 @@ jobs:
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: Test report
+          # We shouldn't need the ref, but GitHub refuses to fix a bug:
+          # See https://github.com/orgs/community/discussions/24616
+          name: "Test report ${{ matrix.go-version }} (${{ github.ref }})"
           path: junit.xml
           reporter: java-junit

@@ -1,4 +1,4 @@
-package eventmux
+package event
 
 import (
 	"artk.dev/asynctx"
@@ -155,7 +155,7 @@ func (m *Mux[Event]) stopEventPropagation() {
 	m.observers = nil
 }
 
-// New creates a Mux.
-func New[Event any]() *Mux[Event] {
+// NewMux creates a Mux.
+func NewMux[Event any]() *Mux[Event] {
 	return &Mux[Event]{}
 }

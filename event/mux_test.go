@@ -1,7 +1,7 @@
-package eventmux_test
+package event_test
 
 import (
-	"artk.dev/eventmux"
+	"artk.dev/event"
 	"artk.dev/racechecker"
 	"artk.dev/testbarrier"
 	"context"
@@ -29,7 +29,7 @@ func TestMux_all_observers_receive_the_event(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(n)
 
-		mux := eventmux.New[Event]()
+		mux := event.NewMux[Event]()
 		for i := range n {
 			mux.WillNotify(func(_ context.Context, e Event) error {
 				defer wg.Done()
@@ -72,7 +72,7 @@ func TestMux_observer_errors_are_not_returned_to_caller(t *testing.T) {
 	t.Parallel()
 
 	t.Log("When an the observer fails,")
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 	mux.WillNotify(func(_ context.Context, _ Event) error {
 		return errors.New("expected observer failure")
 	})
@@ -88,7 +88,7 @@ func TestMux_WillNotify_and_Observe_are_thread_safe(t *testing.T) {
 	t.Parallel()
 	racechecker.Require(t)
 
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 	for range 100 {
 		go func() {
 			mux.WillNotify(func(_ context.Context, _ Event) error {
@@ -128,7 +128,7 @@ func TestMux_Observe_deep_copies_events(t *testing.T) {
 func TestMux_Shutdown_allows_all_tasks_to_terminate(t *testing.T) {
 	t.Parallel()
 
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 
 	t.Log("Given there are 100 registered observers,")
 	const numObservers = 100
@@ -164,7 +164,7 @@ func TestMux_observer_contexts_inherit_values(t *testing.T) {
 	ctx := context.WithValue(context.TODO(), key{}, value)
 
 	var wg sync.WaitGroup
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 
 	for range 100 {
 		mux.WillNotify(func(ctx context.Context, _ Event) error {
@@ -187,7 +187,7 @@ func TestMux_observer_contexts_do_not_inherit_deadline(t *testing.T) {
 	t.Parallel()
 
 	var wg sync.WaitGroup
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 
 	for range 100 {
 		mux.WillNotify(func(ctx context.Context, _ Event) error {
@@ -216,7 +216,7 @@ func TestMux_Observe_does_not_notify_if_context_is_cancelled(t *testing.T) {
 	t.Parallel()
 
 	var wg sync.WaitGroup
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 
 	for range 100 {
 		mux.WillNotify(func(_ context.Context, _ Event) error {
@@ -251,7 +251,7 @@ func TestMux_supports_context_middleware(t *testing.T) {
 
 	t.Log("Then the observer will receive the known key-value")
 	barrier := testbarrier.New()
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 	mux.WithContextMiddleware(contextMiddleware)
 	mux.WillNotify(func(ctx context.Context, _ Event) error {
 		defer barrier.Lift()
@@ -282,8 +282,8 @@ func TestMux_observer_middleware_can_modify_context(t *testing.T) {
 
 	t.Log("Given that the middleware will insert a known key-value,")
 	observerMiddleware := func(
-		next eventmux.Observer[Event],
-	) eventmux.Observer[Event] {
+		next event.Observer[Event],
+	) event.Observer[Event] {
 		return func(ctx context.Context, e Event) error {
 			return next(context.WithValue(ctx, key, expected), e)
 		}
@@ -291,7 +291,7 @@ func TestMux_observer_middleware_can_modify_context(t *testing.T) {
 
 	t.Log("Then the observer will receive the known key-value")
 	barrier := testbarrier.New()
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 	mux.WithObserverMiddleware(observerMiddleware)
 	mux.WillNotify(func(ctx context.Context, _ Event) error {
 		defer barrier.Lift()
@@ -328,8 +328,8 @@ func TestMux_context_middleware_happens_before_observer(t *testing.T) {
 
 	t.Logf("And that the observer middleware will insert %v,", expected)
 	observerMiddleware := func(
-		next eventmux.Observer[Event],
-	) eventmux.Observer[Event] {
+		next event.Observer[Event],
+	) event.Observer[Event] {
 		return func(ctx context.Context, e Event) error {
 			// Overwrites value set by the context middleware.
 			return next(context.WithValue(ctx, key, expected), e)
@@ -338,7 +338,7 @@ func TestMux_context_middleware_happens_before_observer(t *testing.T) {
 
 	t.Logf("Then the observer will receive the value %v", expected)
 	barrier := testbarrier.New()
-	mux := eventmux.New[Event]()
+	mux := event.NewMux[Event]()
 	mux.WithContextMiddleware(contextMiddleware)
 	mux.WithObserverMiddleware(observerMiddleware)
 	mux.WillNotify(func(ctx context.Context, _ Event) error {

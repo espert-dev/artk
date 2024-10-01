@@ -278,7 +278,7 @@ func TestMux_Observe_does_not_notify_if_context_is_cancelled(t *testing.T) {
 func TestMux_supports_context_middleware(t *testing.T) {
 	t.Parallel()
 
-	var key struct{}
+	var key key
 	const expected = 42
 
 	t.Log("Given that the middleware will insert a known key-value,")
@@ -314,7 +314,7 @@ func TestMux_supports_context_middleware(t *testing.T) {
 func TestMux_observer_middleware_can_modify_context(t *testing.T) {
 	t.Parallel()
 
-	var key struct{}
+	var key key
 	const expected = 42
 
 	t.Log("Given that the middleware will insert a known key-value,")
@@ -354,7 +354,7 @@ func TestMux_observer_middleware_can_modify_context(t *testing.T) {
 func TestMux_context_middleware_happens_before_observer(t *testing.T) {
 	t.Parallel()
 
-	var key struct{}
+	var key key
 	const original = 13
 	const expected = 42
 

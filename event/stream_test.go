@@ -365,7 +365,7 @@ func TestStream_context_middleware_happens_before_observer(t *testing.T) {
 
 func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
 	const queueSize = 0
-	stream := event.NewStream[Event](queueSize)
+	stream := event.NewStream[Event](event.WithStreamQueueSize(queueSize))
 
 	var numEventsObserved int
 	barrier := testbarrier.New()

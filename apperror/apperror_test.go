@@ -338,14 +338,14 @@ func TestNew_honors_kind(t *testing.T) {
 func TestNew_honors_message(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name(), func(t *testing.T) {
-			err := apperror.New(tc.kind, "%v error", "test")
+			err := apperror.Newf(tc.kind, "%v error", "test")
 			assertTestMessage(t, err)
 		})
 	}
 }
 
 func TestNew_returns_nil_for_OK(t *testing.T) {
-	err := apperror.New(apperror.OK, "%v error", "test")
+	err := apperror.Newf(apperror.OK, "%v error", "test")
 	if err != nil {
 		t.Error("expected nil, got:", err)
 	}

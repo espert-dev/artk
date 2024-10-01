@@ -11,8 +11,6 @@ linters:
     - durationcheck
     - errcheck
     - errchkjson
-    #- execinquery  # deprecated
-    - exportloopref
     - gocognit
     - goconst
     - gocritic

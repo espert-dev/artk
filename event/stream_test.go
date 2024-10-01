@@ -364,10 +364,10 @@ func TestStream_context_middleware_happens_before_observer(t *testing.T) {
 }
 
 func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
-	const maxTestedQueueSize = 256
+	const maxTestedQueueSize int32 = 256
 	for i := range maxTestedQueueSize {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			testStreamMessageDrop(t, int32(i))
+		t.Run(strconv.Itoa(int(i)), func(t *testing.T) {
+			testStreamMessageDrop(t, i)
 		})
 	}
 }

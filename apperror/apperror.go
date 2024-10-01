@@ -1,6 +1,7 @@
 package apperror
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -41,9 +42,15 @@ func As(kind Kind, err error) error {
 // New creates an error of the specified Kind.
 // Invalid Kind values are mapped to Unknown.
 // If the kind is OK, the function will return nil.
-func New(kind Kind, msg string, a ...any) error {
-	err := fmt.Errorf(msg, a...)
-	return As(kind, err)
+func New(kind Kind, msg string) error {
+	return As(kind, errors.New(msg))
+}
+
+// Newf creates an error of the specified Kind with a formatted string.
+// Invalid Kind values are mapped to Unknown.
+// If the kind is OK, the function will return nil.
+func Newf(kind Kind, msg string, a ...any) error {
+	return As(kind, fmt.Errorf(msg, a...))
 }
 
 // IsFinal returns true for error kinds that are not expected to change by

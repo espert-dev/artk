@@ -22,6 +22,7 @@ jobs:
     strategy:
       matrix:
         go-version:
+          - "1.23"
           - "1.22"
 
     steps:
@@ -40,7 +41,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.58.1
+          version: v1.61.0
           args: "--help" # Install the tool, but don't run it.
 
       - name: Install gotestsum

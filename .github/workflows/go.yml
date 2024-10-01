@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
 
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -69,6 +69,6 @@ jobs:
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: Tests
+          name: Test report
           path: junit.xml
           reporter: java-junit

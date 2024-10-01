@@ -4,6 +4,7 @@ import (
 	"artk.dev/assume"
 	"artk.dev/asynctx"
 	"artk.dev/clone"
+	"artk.dev/ptr"
 	"context"
 	"sync"
 )
@@ -161,14 +162,35 @@ func (s *Stream[Event]) stopEventPropagation() {
 }
 
 // NewStream creates a Stream with the specified maximum queue size.
-func NewStream[Event any](queueSize int32) *Stream[Event] {
+func NewStream[Event any](
+	optionsFn ...func(options *streamOptions),
+) *Stream[Event] {
+	options := &streamOptions{
+		queueSize: ptr.To(defaultQueueSize),
+	}
+	for _, fn := range optionsFn {
+		fn(options)
+	}
+
 	assume.Truef(
-		queueSize >= 0,
+		*options.queueSize >= 0,
 		"queue size cannot be negative (was %v)",
-		queueSize,
+		*options.queueSize,
 	)
 
-	return &Stream[Event]{extraQueueSize: queueSize - defaultQueueSize}
+	return &Stream[Event]{
+		extraQueueSize: *options.queueSize - defaultQueueSize,
+	}
+}
+
+func WithStreamQueueSize(size int32) func(options *streamOptions) {
+	return func(options *streamOptions) {
+		options.queueSize = &size
+	}
+}
+
+type streamOptions struct {
+	queueSize *int32
 }
 
 type eventMsg[Event any] struct {

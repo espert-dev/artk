@@ -375,7 +375,7 @@ func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
 func testStreamMessageDrop(t *testing.T, queueSize int32) {
 	t.Helper()
 
-	stream := event.NewStream[Event](queueSize)
+	stream := event.NewStream[Event](event.WithStreamQueueSize(queueSize))
 
 	var numEventsObserved int
 	barrier := testbarrier.New()

@@ -36,25 +36,18 @@ func (s *Stream[Event]) Observe(ctx context.Context, e Event) error {
 		return nil
 	}
 
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	for _, output := range s.consumerChannels {
-		// Trade performance for safety: prevent shallow copies.
-		msg := eventMsg[Event]{
-			ctx:   asynctx.From(ctx),
-			event: clone.Of(e),
-		}
-
-		select {
-		case output <- msg:
-			// Message sent successfully.
-		default:
-			// Queue full: message dropped.
-		}
+	// Apply context middleware.
+	for _, middleware := range s.contextMiddleware {
+		ctx = middleware(ctx)
 	}
 
-	return nil
+	// Apply the observer middleware.
+	handler := s.notifyConsumers
+	for _, middleware := range s.observerMiddleware {
+		handler = middleware(handler)
+	}
+
+	return handler(ctx, e)
 }
 
 // WillNotify and handle events.
@@ -72,21 +65,8 @@ func (s *Stream[Event]) WillNotify(consume Observer[Event]) *Stream[Event] {
 
 		// Consume messages.
 		for msg := range ch {
-			ctx := msg.ctx
-
-			// Apply context middleware.
-			for _, middleware := range s.contextMiddleware {
-				ctx = middleware(ctx)
-			}
-
-			// Apply the observer middleware.
-			h := consume
-			for _, middleware := range s.observerMiddleware {
-				h = middleware(h)
-			}
-
 			// Ignore errors for now.
-			_ = h(ctx, msg.event)
+			_ = consume(msg.ctx, msg.event)
 		}
 	}()
 
@@ -146,6 +126,28 @@ func (s *Stream[Event]) newConsumerChannel() chan eventMsg[Event] {
 
 	s.consumerChannels = append(s.consumerChannels, ch)
 	return ch
+}
+
+func (s *Stream[Event]) notifyConsumers(ctx context.Context, e Event) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	for _, output := range s.consumerChannels {
+		// Trade performance for safety: prevent shallow copies.
+		msg := eventMsg[Event]{
+			ctx:   asynctx.From(ctx),
+			event: clone.Of(e),
+		}
+
+		select {
+		case output <- msg:
+			// Message sent successfully.
+		default:
+			// Queue full: message dropped.
+		}
+	}
+
+	return nil
 }
 
 func (s *Stream[Event]) stopEventPropagation() {

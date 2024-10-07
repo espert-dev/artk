@@ -32,9 +32,6 @@ func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	numObservers := len(m.observers)
-	m.wg.Add(numObservers)
-
 	// We force the creation of a derived context for safety reasons.
 	// Since we know that this context will not be cancellable, we can
 	// safely share it across all observers.
@@ -43,48 +40,18 @@ func (m *Mux[Event]) Observe(ctx context.Context, event Event) error {
 	// the original.
 	ctx = asynctx.From(ctx)
 
-	// Observers are notified concurrently.
-	for i := range numObservers {
-		// When this goroutine will finish is unspecified, which means
-		// that we cannot rely on the mutex to make any operations
-		// thread-safe. In practice, this means that all middleware has
-		// to have been applied by this point. This precludes
-		// optimizations such as applying the middleware inside the
-		// goroutine below.
-		//
-		// Note that using the sync.WaitGroup is still safe even if
-		// we are not holding the mutex.
-
-		go func(
-			ctx context.Context,
-			observer Observer[Event],
-			event Event,
-		) {
-			defer m.wg.Done()
-
-			// Trade performance for safety: prevent shallow copies.
-			event = clone.Of(event)
-
-			// Apply context middleware.
-			for _, middleware := range m.contextMiddleware {
-				ctx = middleware(ctx)
-			}
-
-			// Apply the observer middleware.
-			for _, middleware := range m.observerMiddleware {
-				observer = middleware(observer)
-			}
-
-			// Call the observer.
-			//
-			// While we ultimately ignore the error here, it was
-			// made available to any middleware. This can be used,
-			// e.g., for logging.
-			_ = observer(ctx, event)
-		}(ctx, m.observers[i], event)
+	// Apply context middleware.
+	for _, middleware := range m.contextMiddleware {
+		ctx = middleware(ctx)
 	}
 
-	return nil
+	// Apply the observer middleware.
+	observer := m.notifyConsumers
+	for _, middleware := range m.observerMiddleware {
+		observer = middleware(observer)
+	}
+
+	return observer(ctx, event)
 }
 
 // WillNotify registers an observer.
@@ -142,6 +109,44 @@ func (m *Mux[Event]) Shutdown(wg *sync.WaitGroup) {
 		defer wg.Done()
 		m.wg.Wait()
 	}()
+}
+
+func (m *Mux[Event]) notifyConsumers(ctx context.Context, event Event) error {
+	numObservers := len(m.observers)
+	m.wg.Add(numObservers)
+
+	// Observers are notified concurrently.
+	for i := range numObservers {
+		// When this goroutine will finish is unspecified, which means
+		// that we cannot rely on the mutex to make any operations
+		// thread-safe. In practice, this means that all middleware has
+		// to have been applied by this point. This precludes
+		// optimizations such as applying the middleware inside the
+		// goroutine below.
+		//
+		// Note that using the sync.WaitGroup is still safe even if
+		// we are not holding the mutex.
+
+		go func(
+			ctx context.Context,
+			observer Observer[Event],
+			event Event,
+		) {
+			defer m.wg.Done()
+
+			// Trade performance for safety: prevent shallow copies.
+			event = clone.Of(event)
+
+			// Call the observer.
+			//
+			// While we ultimately ignore the error here, it was
+			// made available to any middleware. This can be used,
+			// e.g., for logging.
+			_ = observer(ctx, event)
+		}(ctx, m.observers[i], event)
+	}
+
+	return nil
 }
 
 func (m *Mux[Event]) stopEventPropagation() {

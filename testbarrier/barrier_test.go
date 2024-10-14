@@ -6,15 +6,33 @@ import (
 	"time"
 )
 
-func TestBarrier_succeeds_if_lifted_before_timeout_expires(t *testing.T) {
+func TestBarrier_Wait(t *testing.T) {
 	t.Parallel()
 
 	barrier := testbarrier.New()
 	go barrier.Lift()
-	barrier.Wait(t, 100*365*24*time.Hour)
+	barrier.Wait(t)
 }
 
-func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
+func TestBarrier_Wait_can_wait_multiple_times(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	go barrier.Lift()
+	barrier.Wait(t)
+	barrier.Wait(t)
+	barrier.Wait(t)
+}
+
+func TestBarrier_WaitFor_ok_if_lifted_before_timeout_expires(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	go barrier.Lift()
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+}
+
+func TestBarrier_WaitFor_calls_FailNow_if_timeout_expires(t *testing.T) {
 	t.Parallel()
 
 	success := make(chan struct{})
@@ -29,7 +47,7 @@ func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
 			// Nothing can lift the barrier.
 			// This guarantees that it will time out.
 			barrier := testbarrier.New()
-			barrier.Wait(fakeT, time.Nanosecond)
+			barrier.WaitFor(fakeT, time.Nanosecond)
 		}()
 
 		<-fakeT.onHelper
@@ -49,13 +67,13 @@ func TestBarrier_Wait_calls_FailNow_if_timeout_expires(t *testing.T) {
 	}
 }
 
-func TestBarrier_Wait_never_blocks_after_Lift(t *testing.T) {
+func TestBarrier_WaitFor_never_blocks_after_Lift(t *testing.T) {
 	t.Parallel()
 
 	barrier := testbarrier.New()
 	go barrier.Lift()
 
 	for range 100 {
-		barrier.Wait(t, 100*365*24*time.Hour)
+		barrier.WaitFor(t, 100*365*24*time.Hour)
 	}
 }

@@ -11,7 +11,7 @@ func TestBarrier_Wait(t *testing.T) {
 
 	barrier := testbarrier.New()
 	go barrier.Lift()
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestBarrier_Wait_can_wait_multiple_times(t *testing.T) {
@@ -20,9 +20,9 @@ func TestBarrier_Wait_can_wait_multiple_times(t *testing.T) {
 	barrier := testbarrier.New()
 	go barrier.Lift()
 
-	barrier.Wait(t)
-	barrier.Wait(t)
-	barrier.Wait(t)
+	barrier.Wait()
+	barrier.Wait()
+	barrier.Wait()
 }
 
 func TestBarrier_WaitFor_can_wait_multiple_times(t *testing.T) {
@@ -30,6 +30,30 @@ func TestBarrier_WaitFor_can_wait_multiple_times(t *testing.T) {
 
 	barrier := testbarrier.New()
 	go barrier.Lift()
+
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+}
+
+func TestBarrier_WaitFor_can_lift_multiple_times(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	barrier.Lift()
+	barrier.Lift()
+	barrier.Lift()
+
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+}
+
+func TestBarrier_WaitFor_can_lift_and_wait_multiple_times(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	barrier.Lift()
+	barrier.Lift()
+	barrier.Lift()
 
 	barrier.WaitFor(t, 100*365*24*time.Hour)
 	barrier.WaitFor(t, 100*365*24*time.Hour)

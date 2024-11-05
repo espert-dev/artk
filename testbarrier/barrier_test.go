@@ -11,7 +11,7 @@ func TestBarrier_Wait(t *testing.T) {
 
 	barrier := testbarrier.New()
 	go barrier.Lift()
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestBarrier_Wait_can_wait_multiple_times(t *testing.T) {
@@ -20,9 +20,9 @@ func TestBarrier_Wait_can_wait_multiple_times(t *testing.T) {
 	barrier := testbarrier.New()
 	go barrier.Lift()
 
-	barrier.Wait(t)
-	barrier.Wait(t)
-	barrier.Wait(t)
+	barrier.Wait()
+	barrier.Wait()
+	barrier.Wait()
 }
 
 func TestBarrier_WaitFor_can_wait_multiple_times(t *testing.T) {

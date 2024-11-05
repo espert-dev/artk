@@ -271,7 +271,7 @@ func TestMux_supports_context_middleware(t *testing.T) {
 		t.Error("unexpected error:", err)
 	}
 
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestMux_observer_middleware_can_modify_context(t *testing.T) {
@@ -311,7 +311,7 @@ func TestMux_observer_middleware_can_modify_context(t *testing.T) {
 		t.Error("unexpected error:", err)
 	}
 
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestMux_context_middleware_happens_before_observer(t *testing.T) {
@@ -359,5 +359,5 @@ func TestMux_context_middleware_happens_before_observer(t *testing.T) {
 		t.Error("unexpected error:", err)
 	}
 
-	barrier.Wait(t)
+	barrier.Wait()
 }

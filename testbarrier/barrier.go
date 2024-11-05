@@ -14,6 +14,8 @@ type Barrier struct {
 }
 
 // Lift the barrier. Must be called when the event happens.
+//
+// This method is idempotent and can be called multiple times.
 func (b *Barrier) Lift() {
 	b.closeOnce.Do(func() {
 		close(b.ch)
@@ -25,10 +27,7 @@ func (b *Barrier) Lift() {
 // Eventually, the go test timeout will kick in.
 // It can introduce higher delays than WaitFor on failures, but on the other
 // hand it is much friendlier to debugging.
-func (b *Barrier) Wait(t testingT) {
-	assume.NotZero(t)
-
-	t.Helper()
+func (b *Barrier) Wait() {
 	<-b.ch
 }
 

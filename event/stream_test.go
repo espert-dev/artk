@@ -272,7 +272,7 @@ func TestStream_supports_context_middleware(t *testing.T) {
 		t.Error("unexpected error:", err)
 	}
 
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestStream_observer_middleware_can_modify_context(t *testing.T) {
@@ -312,7 +312,7 @@ func TestStream_observer_middleware_can_modify_context(t *testing.T) {
 		t.Error("unexpected error:", err)
 	}
 
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestStream_context_middleware_happens_before_observer(t *testing.T) {
@@ -360,7 +360,7 @@ func TestStream_context_middleware_happens_before_observer(t *testing.T) {
 		t.Error("unexpected error:", err)
 	}
 
-	barrier.Wait(t)
+	barrier.Wait()
 }
 
 func TestStream_messages_are_dropped_when_queue_size_exceeded(t *testing.T) {
@@ -380,7 +380,7 @@ func testStreamMessageDrop(t *testing.T, queueSize int32) {
 	var numEventsObserved int
 	barrier := testbarrier.New()
 	stream.WillNotify(func(_ context.Context, _ Event) error {
-		barrier.Wait(t)
+		barrier.Wait()
 		numEventsObserved++
 		return nil
 	})

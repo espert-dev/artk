@@ -36,6 +36,30 @@ func TestBarrier_WaitFor_can_wait_multiple_times(t *testing.T) {
 	barrier.WaitFor(t, 100*365*24*time.Hour)
 }
 
+func TestBarrier_WaitFor_can_lift_multiple_times(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	barrier.Lift()
+	barrier.Lift()
+	barrier.Lift()
+
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+}
+
+func TestBarrier_WaitFor_can_lift_and_wait_multiple_times(t *testing.T) {
+	t.Parallel()
+
+	barrier := testbarrier.New()
+	barrier.Lift()
+	barrier.Lift()
+	barrier.Lift()
+
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+	barrier.WaitFor(t, 100*365*24*time.Hour)
+}
+
 func TestBarrier_WaitFor_ok_if_lifted_before_timeout_expires(t *testing.T) {
 	t.Parallel()
 

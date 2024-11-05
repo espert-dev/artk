@@ -3,17 +3,21 @@ package testbarrier
 
 import (
 	"artk.dev/assume"
+	"sync"
 	"time"
 )
 
 // Barrier blocks tests for a limited duration until an event happens.
 type Barrier struct {
-	ch chan struct{}
+	ch        chan struct{}
+	closeOnce sync.Once
 }
 
 // Lift the barrier. Must be called when the event happens.
-func (b Barrier) Lift() {
-	close(b.ch)
+func (b *Barrier) Lift() {
+	b.closeOnce.Do(func() {
+		close(b.ch)
+	})
 }
 
 // Wait for the barrier to lift indefinitely.
@@ -21,7 +25,7 @@ func (b Barrier) Lift() {
 // Eventually, the go test timeout will kick in.
 // It can introduce higher delays than WaitFor on failures, but on the other
 // hand it is much friendlier to debugging.
-func (b Barrier) Wait(t testingT) {
+func (b *Barrier) Wait(t testingT) {
 	assume.NotZero(t)
 
 	t.Helper()
@@ -30,7 +34,7 @@ func (b Barrier) Wait(t testingT) {
 
 // WaitFor for the barrier to lift for up to a duration `d`.
 // If the deadline expires, the test will fail immediately.
-func (b Barrier) WaitFor(t testingT, d time.Duration) {
+func (b *Barrier) WaitFor(t testingT, d time.Duration) {
 	assume.NotZero(t)
 
 	t.Helper()
@@ -48,6 +52,6 @@ func (b Barrier) WaitFor(t testingT, d time.Duration) {
 }
 
 // New creates a Barrier.
-func New() Barrier {
-	return Barrier{ch: make(chan struct{})}
+func New() *Barrier {
+	return &Barrier{ch: make(chan struct{})}
 }
